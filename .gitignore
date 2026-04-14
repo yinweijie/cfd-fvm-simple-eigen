@@ -1,0 +1,6 @@
+.codex
+.omx/
+build/
+__pycache__/
+*.pyc
+.DS_Store

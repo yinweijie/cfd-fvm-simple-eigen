@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "u": {
+    "linf": 0.11454591430000005,
+    "l2": 0.030822132288492846,
+    "samples": 17
+  },
+  "v": {
+    "linf": 0.03258647204,
+    "l2": 0.01329989420924289,
+    "samples": 17
+  },
+  "thresholds": {
+    "u_linf": 0.15,
+    "v_linf": 0.15
+  },
+  "artifacts": {
+    "plot": "results/cavity_re100/validation_plot.svg"
+  }
+}

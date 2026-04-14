@@ -1,0 +1,5 @@
+converged=true
+iterations=1005
+re=100
+nx=32
+ny=32
