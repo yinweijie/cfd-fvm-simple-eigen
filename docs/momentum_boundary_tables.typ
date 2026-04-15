@@ -6,6 +6,16 @@
 This note summarizes the coefficient expressions used by the main
 discretization operators in the current SIMPLE solver.
 
+This Typst note is the canonical home for reusable algebra: momentum
+coefficients, wall fold-back tables, Rhie-Chow face formulas, and the
+pressure-correction stencil assembled in
+`assemble_pressure_correction()`.
+The complementary Markdown note
+[`docs/simple_solver_theory.md`](simple_solver_theory.md) is the
+canonical home for SIMPLE chronology, call-flow semantics, and the final
+`grad_pc_x` / `grad_pc_y` correction step in
+`correct_pressure_and_velocity()`.
+
 When a control volume touches a cavity wall, the missing neighbor is not assembled
 as an off-diagonal matrix entry. Instead, the corresponding coefficient is folded
 back into the diagonal coefficient $a_P$. For the north wall in the $u$ equation,
@@ -136,6 +146,20 @@ $
 
 $
 a_P^("base") = a_E + a_W + a_N + a_S + (F_e - F_w + F_n - F_s)
+$
+
+== Implemented Pressure-Force Terms
+
+The momentum right-hand sides use the code paths `pressure_force_u()` and
+`pressure_force_v()` to convert centered pressure differences into source terms
+over the control-volume face area:
+
+$
+S_p^("u") = (p_W - p_E) Delta y / 2
+$
+
+$
+S_p^("v") = (p_S - p_N) Delta x / 2
 $
 
 == Momentum Right-Hand Sides
@@ -278,11 +302,43 @@ $S_U$ carries any explicit boundary source term.
   caption: [Equivalent boundary linearization for the *v*-momentum equation.],
 )
 
+== SIMPLE Correction Factors And Pressure Gradients
+
+After the relaxed momentum equations are assembled, the code converts their final
+assembled diagonals into the SIMPLE velocity-correction factors
+$d_u$ and $d_v$ through `update_u_correction_factors()` and
+`update_v_correction_factors()`.
+
+For one interior cell $P$,
+
+$
+d_(u,P) = Delta x Delta y / a_(P,u), quad
+d_(v,P) = Delta x Delta y / a_(P,v)
+$
+
+where $a_(P,u)$ and $a_(P,v)$ denote the final assembled central coefficients of
+the relaxed $u$- and $v$-momentum rows, including under-relaxation and any
+boundary fold-back terms from the wall treatment above.
+
+The Rhie-Chow reconstruction also uses cell-centered pressure gradients computed
+from the current pressure field.
+These are the gradients returned by `pressure_gradient_x()` and
+`pressure_gradient_y()` in `src/discretization.cpp`:
+
+$
+g_(x,P) = (p_E - p_W) / (2 Delta x), quad
+g_(y,P) = (p_N - p_S) / (2 Delta y)
+$
+
 == Rhie-Chow Face Velocities
 
 Interior cavity faces are reconstructed from neighboring cell-centered velocities
-plus a pressure-correction term. Boundary faces on the physical walls are set to
-zero normal velocity instead of using these formulas.
+plus a pressure-gradient correction built from the current pressure field.
+Boundary faces on the physical walls are set to zero normal velocity instead of
+using these formulas.
+The code paths are `rhie_chow_u_face_velocity()` and
+`rhie_chow_v_face_velocity()`, and their face-averaged coefficient is the
+`d_face` quantity referenced in the Markdown theory note.
 
 $ 
 u_e = (u_P + u_E)/2 - d_e ((p_E - p_P) / (Delta x) - (g_(x,P) + g_(x,E)) / 2)
@@ -294,16 +350,26 @@ $
 
 $
 d_e = (d_(u,P) + d_(u,E)) / 2, quad
-d_n = (d_(v,P) + d_(v,N)) / 2
+d_w = (d_(u,P) + d_(u,W)) / 2
 $
 
-The west and south face formulas are analogous, with the neighboring cell labels
-changed from $E$ or $N$ to $W$ or $S$.
+$
+d_n = (d_(v,P) + d_(v,N)) / 2, quad
+d_s = (d_(v,P) + d_(v,S)) / 2
+$
+
+These face-averaged quantities are the `d_face` factors used both in the Rhie-Chow
+reconstruction and, by directional reuse, in the pressure-correction stencil below.
 
 == Pressure-Correction Coefficients
 
 The pressure-correction equation uses the predictor face velocities to form the
-mass-imbalance right-hand side and uses neighboring $d_u$ and $d_v$ values to form the four-point stencil.
+mass-imbalance right-hand side and uses neighboring $d_u$ and $d_v$ values to
+form the four-point stencil. This note is the canonical home for those algebraic
+coefficients; `docs/simple_solver_theory.md` owns the iteration-stage explanation
+for when predictor faces are rebuilt and when the final corrected fields are used.
+In code, these coefficients are assembled inside `assemble_pressure_correction()`
+from face-averaged $d_u$ and $d_v$ values.
 
 $
 a_E^("pc") = rho Delta y ((d_(u,P) + d_(u,E)) / 2) / (Delta x)
@@ -331,6 +397,8 @@ $
 
 The code replaces the south-west corner row $(1, 1)$ with a pressure reference:
 $a_P = 1$ and $m_P = 0$.
+The later corrected-pressure level shift is documented only in the
+Markdown note so the ownership boundary stays explicit.
 
 #figure(
   table(
