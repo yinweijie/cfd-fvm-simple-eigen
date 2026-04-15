@@ -18,10 +18,10 @@ matrix, assembled neighbor entries are written as `-a_W`, `-a_E`, `-a_S`, and `-
 
 The notation follows standard finite-volume conventions:
 
-- `P` is the current control volume center.
-- `W`, `E`, `S`, and `N` are the west, east, south, and north neighboring cells.
-- `w`, `e`, `s`, and `n` denote the corresponding cell faces.
-- `a_W`, `a_E`, `a_S`, and `a_N` are stored below as positive link-coefficient magnitudes.
+- $P$ is the current control volume center.
+- $W$, $E$, $S$, and $N$ are the west, east, south, and north neighboring cells.
+- $w$, $e$, $s$, and $n$ denote the corresponding cell faces.
+- $a_W$, $a_E$, $a_S$, and $a_N$ are stored below as positive link-coefficient magnitudes.
 
 == Boundary Handling Through Ghost Cells
 
@@ -57,7 +57,7 @@ $
 a_N u_G = a_N (2 U_"lid" - u_P) = -a_N u_P + 2 a_N U_"lid"
 $
 
-The `-a_N u_P` part is absorbed into the diagonal, while the remaining constant
+The $-a_N u_P$ part is absorbed into the diagonal, while the remaining constant
 part becomes the source contribution $2 a_N U_"lid"$.
 
 Pressure and pressure-correction use homogeneous Neumann wall conditions,
