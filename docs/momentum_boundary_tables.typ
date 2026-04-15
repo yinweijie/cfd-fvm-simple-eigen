@@ -8,11 +8,11 @@ discretization operators in the current SIMPLE solver.
 
 When a control volume touches a cavity wall, the missing neighbor is not assembled
 as an off-diagonal matrix entry. Instead, the corresponding coefficient is folded
-back into the diagonal coefficient `a_P`. For the north wall in the `u` equation,
+back into the diagonal coefficient $a_P$. For the north wall in the $u$ equation,
 that diagonal fold-back is paired with the moving-lid source term.
 
 The tables below list the *positive* link-coefficient magnitudes. In the sparse
-matrix, assembled neighbor entries are written as `-a_W`, `-a_E`, `-a_S`, and `-a_N`.
+matrix, assembled neighbor entries are written as $-a_W$, $-a_E$, $-a_S$, and $-a_N$.
 
 == Notation
 
@@ -254,13 +254,12 @@ d_n = (d_(v,P) + d_(v,N)) / 2
 $
 
 The west and south face formulas are analogous, with the neighboring cell labels
-changed from `E` or `N` to `W` or `S`.
+changed from $E$ or $N$ to $W$ or $S$.
 
 == Pressure-Correction Coefficients
 
 The pressure-correction equation uses the predictor face velocities to form the
-mass-imbalance right-hand side and uses neighboring `d_u` and `d_v` values to form
-the four-point stencil.
+mass-imbalance right-hand side and uses neighboring $d_u$ and $d_v$ values to form the four-point stencil.
 
 $
 a_E^("pc") = rho Delta y ((d_(u,P) + d_(u,E)) / 2) / Delta x
