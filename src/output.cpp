@@ -7,6 +7,7 @@
 namespace cfd {
 namespace {
 
+// Write a 2-column CSV series with fixed headers.
 void write_pairs(
     const std::filesystem::path& path,
     const char* header_x,
@@ -20,6 +21,7 @@ void write_pairs(
   }
 }
 
+// Write a dense matrix to CSV using the repo's column-major viewing convention.
 void write_matrix_csv(
     const std::filesystem::path& path,
     const Eigen::MatrixXd& matrix) {
@@ -36,7 +38,9 @@ void write_matrix_csv(
   }
 }
 
+// Extract the interior pressure field and drop the ghost cells.
 Eigen::MatrixXd pressure_cells(const StructuredGrid& grid, const FlowFields& fields) {
+  // Only export interior control-volume values; ghost cells only support the stencil.
   Eigen::MatrixXd cells(grid.nx(), grid.ny());
   for (int j = 1; j <= grid.ny(); ++j) {
     for (int i = 1; i <= grid.nx(); ++i) {
@@ -46,6 +50,7 @@ Eigen::MatrixXd pressure_cells(const StructuredGrid& grid, const FlowFields& fie
   return cells;
 }
 
+// Extract the interior corrected u field and drop the ghost cells.
 Eigen::MatrixXd u_cells(const StructuredGrid& grid, const FlowFields& fields) {
   Eigen::MatrixXd cells(grid.nx(), grid.ny());
   for (int j = 1; j <= grid.ny(); ++j) {
@@ -56,6 +61,7 @@ Eigen::MatrixXd u_cells(const StructuredGrid& grid, const FlowFields& fields) {
   return cells;
 }
 
+// Extract the interior corrected v field and drop the ghost cells.
 Eigen::MatrixXd v_cells(const StructuredGrid& grid, const FlowFields& fields) {
   Eigen::MatrixXd cells(grid.nx(), grid.ny());
   for (int j = 1; j <= grid.ny(); ++j) {
@@ -68,6 +74,7 @@ Eigen::MatrixXd v_cells(const StructuredGrid& grid, const FlowFields& fields) {
 
 }  // namespace
 
+// Interpolate the corrected u field to the cavity's vertical centerline.
 std::vector<std::pair<double, double>> extract_u_centerline(
     const StructuredGrid& grid,
     const FlowFields& fields) {
@@ -78,6 +85,7 @@ std::vector<std::pair<double, double>> extract_u_centerline(
   const int right_i = left_i + 1;
   const double left_x = grid.cell_center_x(left_i);
   const double right_x = grid.cell_center_x(right_i);
+  // Benchmark samples lie at x = 0.5, which is between two cell centers on an even grid.
   const double weight = (0.5 - left_x) / (right_x - left_x);
 
   for (int j = 1; j <= grid.ny(); ++j) {
@@ -91,6 +99,7 @@ std::vector<std::pair<double, double>> extract_u_centerline(
   return values;
 }
 
+// Interpolate the corrected v field to the cavity's horizontal centerline.
 std::vector<std::pair<double, double>> extract_v_centerline(
     const StructuredGrid& grid,
     const FlowFields& fields) {
@@ -101,6 +110,7 @@ std::vector<std::pair<double, double>> extract_v_centerline(
   const int top_j = bottom_j + 1;
   const double bottom_y = grid.cell_center_y(bottom_j);
   const double top_y = grid.cell_center_y(top_j);
+  // Benchmark samples lie at y = 0.5, which is between two cell centers on an even grid.
   const double weight = (0.5 - bottom_y) / (top_y - bottom_y);
 
   for (int i = 1; i <= grid.nx(); ++i) {
@@ -114,6 +124,7 @@ std::vector<std::pair<double, double>> extract_v_centerline(
   return values;
 }
 
+// Write field snapshots, centerlines, and residual history for one finished run.
 void write_results(
     const StructuredGrid& grid,
     const CavityCase& config,

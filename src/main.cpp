@@ -10,6 +10,7 @@
 
 namespace {
 
+// Parse one floating-point CLI argument and attach the option name to any error.
 double parse_double(const std::string& value, const char* option_name) {
   try {
     return std::stod(value);
@@ -18,6 +19,7 @@ double parse_double(const std::string& value, const char* option_name) {
   }
 }
 
+// Parse one integer CLI argument and attach the option name to any error.
 int parse_int(const std::string& value, const char* option_name) {
   try {
     return std::stoi(value);
@@ -26,6 +28,7 @@ int parse_int(const std::string& value, const char* option_name) {
   }
 }
 
+// Print the supported command-line options for the cavity solver.
 void print_usage() {
   std::cout
       << "Usage: cfd_solver [--case cavity] [--nx N] [--ny N] [--re Re] "
@@ -35,6 +38,7 @@ void print_usage() {
 
 }  // namespace
 
+// Parse CLI options, run the cavity case, and write solver outputs.
 int main(int argc, char** argv) {
   try {
     cfd::CavityCase config;

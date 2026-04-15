@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "u": {
+    "linf": 1.734723475976807e-18,
+    "l2": 3.0665868333667484e-19,
+    "samples": 32
+  },
+  "v": {
+    "linf": 6.938893903907228e-18,
+    "l2": 1.2361806729070689e-18,
+    "samples": 32
+  },
+  "thresholds": {
+    "u_linf": 0.15,
+    "v_linf": 0.15
+  },
+  "artifacts": {
+    "plot": "results/current_cavity_re100/comparison_plot.svg"
+  },
+  "plot_style": {
+    "title": "CFD Cavity Comparison: Base vs Refactored",
+    "reference_label": "Base simulation",
+    "results_label": "Refactored simulation",
+    "reference_render": "solid",
+    "results_render": "dashed",
+    "reference_color": "#475569",
+    "results_color": "#dc2626"
+  }
+}

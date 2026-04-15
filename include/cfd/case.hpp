@@ -6,6 +6,7 @@
 
 namespace cfd {
 
+// SIMPLE stopping criteria and under-relaxation settings for one solve.
 struct SolverControls {
   int max_iterations = 2000;
   int min_iterations = 50;
@@ -16,6 +17,7 @@ struct SolverControls {
   double alpha_p = 0.3;
 };
 
+// Full configuration for the steady lid-driven cavity benchmark case.
 struct CavityCase {
   MeshSpec mesh_spec{32, 32, 1.0, 1.0};
   double density = 1.0;
@@ -24,6 +26,7 @@ struct CavityCase {
   SolverControls controls{};
   std::string output_dir = "results/cavity_re100";
 
+  // Derive the dynamic viscosity from density, lid speed, cavity length, and Reynolds number.
   double viscosity() const {
     return density * lid_velocity * mesh_spec.lx / reynolds;
   }

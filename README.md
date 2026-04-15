@@ -52,10 +52,15 @@ Validation image:
 
 ![Validation Plot](results/cavity_re100/validation_plot.svg)
 
+## Theory Notes
+
+- [docs/simple_solver_theory.md](docs/simple_solver_theory.md) explains the current SIMPLE, Rhie-Chow, and pressure-correction implementation using the same symbols that appear in code.
+
 ## Repository Layout
 
 - `include/` public solver headers
 - `src/` solver implementation
+- `docs/` theory notes and implementation-aligned documentation
 - `tests/` unit and smoke tests
 - `scripts/validate_cavity.py` benchmark comparison script
 - `data/benchmarks/` reference centerline data

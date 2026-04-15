@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900">
+<rect width="100%" height="100%" fill="#eef2ff" />
+<text x="48" y="56" font-size="30" font-weight="700" fill="#0f172a">CFD Cavity Comparison: Base vs Refactored</text>
+<text x="48" y="86" font-size="14" fill="#475569">Results: results/current_cavity_re100</text>
+<text x="48" y="110" font-size="14" fill="#475569">Overall verdict: PASS</text>
+<rect x="40" y="140" width="1200" height="330" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+<text x="56" y="166" font-size="18" font-weight="700" fill="#0f172a">u centerline at x = 0.5</text>
+<text x="56" y="188" font-size="12" fill="#475569">Linf=0.0000, L2=0.0000, samples=32</text>
+<line x1="100.00" y1="425.00" x2="100.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="100.00" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.00</text>
+<line x1="377.50" y1="425.00" x2="377.50" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="377.50" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.25</text>
+<line x1="655.00" y1="425.00" x2="655.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="655.00" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.50</text>
+<line x1="932.50" y1="425.00" x2="932.50" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="932.50" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.75</text>
+<line x1="1210.00" y1="425.00" x2="1210.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="1210.00" y="447.00" text-anchor="middle" font-size="12" fill="#374151">1.00</text>
+<line x1="100.00" y1="425.00" x2="1210.00" y2="425.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="429.00" text-anchor="end" font-size="12" fill="#374151">-0.27</text>
+<line x1="100.00" y1="371.25" x2="1210.00" y2="371.25" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="375.25" text-anchor="end" font-size="12" fill="#374151">0.04</text>
+<line x1="100.00" y1="317.50" x2="1210.00" y2="317.50" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="321.50" text-anchor="end" font-size="12" fill="#374151">0.35</text>
+<line x1="100.00" y1="263.75" x2="1210.00" y2="263.75" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="267.75" text-anchor="end" font-size="12" fill="#374151">0.66</text>
+<line x1="100.00" y1="210.00" x2="1210.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="214.00" text-anchor="end" font-size="12" fill="#374151">0.97</text>
+<rect x="100" y="210" width="1110" height="215" fill="none" stroke="#334155" stroke-width="1.5" />
+<polyline points="117.34,379.81 152.03,383.38 186.72,386.54 221.41,389.39 256.09,392.03 290.78,394.51 325.47,396.88 360.16,399.15 394.84,401.35 429.53,403.43 464.22,405.37 498.91,407.09 533.59,408.53 568.28,409.59 602.97,410.17 637.66,410.16 672.34,409.46 707.03,407.97 741.72,405.64 776.41,402.40 811.09,398.26 845.78,393.22 880.47,387.28 915.16,380.41 949.84,372.47 984.53,363.15 1019.22,351.81 1053.91,337.48 1088.59,318.84 1123.28,294.32 1157.97,262.77 1192.66,224.83" fill="none" stroke="#475569" stroke-width="2.5" />
+<polyline points="117.34,379.81 152.03,383.38 186.72,386.54 221.41,389.39 256.09,392.03 290.78,394.51 325.47,396.88 360.16,399.15 394.84,401.35 429.53,403.43 464.22,405.37 498.91,407.09 533.59,408.53 568.28,409.59 602.97,410.17 637.66,410.16 672.34,409.46 707.03,407.97 741.72,405.64 776.41,402.40 811.09,398.26 845.78,393.22 880.47,387.28 915.16,380.41 949.84,372.47 984.53,363.15 1019.22,351.81 1053.91,337.48 1088.59,318.84 1123.28,294.32 1157.97,262.77 1192.66,224.83" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="8 6" />
+<rect x="1065" y="162" width="155" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+<line x1="1077" y1="176" x2="1107" y2="176" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="8 6" />
+<text x="1115" y="180" font-size="12" fill="#0f172a">Refactored simulation</text>
+<line x1="1077" y1="193" x2="1107" y2="193" stroke="#475569" stroke-width="2.5" />
+<text x="1115" y="197" font-size="12" fill="#0f172a">Base simulation</text>
+<text x="655.00" y="452.00" text-anchor="middle" font-size="13" fill="#334155">y</text>
+<text x="58.00" y="317.50" text-anchor="middle" font-size="13" fill="#334155" transform="rotate(-90 58.00 317.50)">u</text>
+<rect x="40" y="510" width="1200" height="330" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+<text x="56" y="536" font-size="18" font-weight="700" fill="#0f172a">v centerline at y = 0.5</text>
+<text x="56" y="558" font-size="12" fill="#475569">Linf=0.0000, L2=0.0000, samples=32</text>
+<line x1="100.00" y1="795.00" x2="100.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="100.00" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.00</text>
+<line x1="377.50" y1="795.00" x2="377.50" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="377.50" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.25</text>
+<line x1="655.00" y1="795.00" x2="655.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="655.00" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.50</text>
+<line x1="932.50" y1="795.00" x2="932.50" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="932.50" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.75</text>
+<line x1="1210.00" y1="795.00" x2="1210.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="1210.00" y="817.00" text-anchor="middle" font-size="12" fill="#374151">1.00</text>
+<line x1="100.00" y1="795.00" x2="1210.00" y2="795.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="799.00" text-anchor="end" font-size="12" fill="#374151">-0.26</text>
+<line x1="100.00" y1="741.25" x2="1210.00" y2="741.25" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="745.25" text-anchor="end" font-size="12" fill="#374151">-0.15</text>
+<line x1="100.00" y1="687.50" x2="1210.00" y2="687.50" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="691.50" text-anchor="end" font-size="12" fill="#374151">-0.03</text>
+<line x1="100.00" y1="633.75" x2="1210.00" y2="633.75" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="637.75" text-anchor="end" font-size="12" fill="#374151">0.08</text>
+<line x1="100.00" y1="580.00" x2="1210.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="584.00" text-anchor="end" font-size="12" fill="#374151">0.20</text>
+<rect x="100" y="580" width="1110" height="215" fill="none" stroke="#334155" stroke-width="1.5" />
+<polyline points="117.34,659.14 152.03,637.80 186.72,621.58 221.41,609.87 256.09,601.98 290.78,597.22 325.47,594.99 360.16,594.83 394.84,596.39 429.53,599.44 464.22,603.85 498.91,609.52 533.59,616.44 568.28,624.61 602.97,634.03 637.66,644.71 672.34,656.61 707.03,669.66 741.72,683.71 776.41,698.57 811.09,713.99 845.78,729.54 880.47,744.61 915.16,758.38 949.84,769.78 984.53,777.53 1019.22,780.17 1053.91,776.26 1088.59,764.65 1123.28,745.06 1157.97,718.59 1192.66,687.97" fill="none" stroke="#475569" stroke-width="2.5" />
+<polyline points="117.34,659.14 152.03,637.80 186.72,621.58 221.41,609.87 256.09,601.98 290.78,597.22 325.47,594.99 360.16,594.83 394.84,596.39 429.53,599.44 464.22,603.85 498.91,609.52 533.59,616.44 568.28,624.61 602.97,634.03 637.66,644.71 672.34,656.61 707.03,669.66 741.72,683.71 776.41,698.57 811.09,713.99 845.78,729.54 880.47,744.61 915.16,758.38 949.84,769.78 984.53,777.53 1019.22,780.17 1053.91,776.26 1088.59,764.65 1123.28,745.06 1157.97,718.59 1192.66,687.97" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="8 6" />
+<rect x="1065" y="532" width="155" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+<line x1="1077" y1="546" x2="1107" y2="546" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="8 6" />
+<text x="1115" y="550" font-size="12" fill="#0f172a">Refactored simulation</text>
+<line x1="1077" y1="563" x2="1107" y2="563" stroke="#475569" stroke-width="2.5" />
+<text x="1115" y="567" font-size="12" fill="#0f172a">Base simulation</text>
+<text x="655.00" y="822.00" text-anchor="middle" font-size="13" fill="#334155">x</text>
+<text x="58.00" y="687.50" text-anchor="middle" font-size="13" fill="#334155" transform="rotate(-90 58.00 687.50)">v</text>
+</svg>

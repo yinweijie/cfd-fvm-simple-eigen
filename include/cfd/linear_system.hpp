@@ -8,22 +8,26 @@
 
 namespace cfd {
 
+// Sparse linear system Ax = b assembled for Eigen-based iterative solvers.
 struct LinearSystem {
   Eigen::SparseMatrix<double, Eigen::RowMajor> matrix;
   Eigen::VectorXd rhs;
 };
 
+// Iterative solver choices used by the momentum and pressure-correction systems.
 enum class SolverKind {
   kBiCGSTAB,
   kConjugateGradient,
 };
 
+// Linear solve output including the solution vector and convergence diagnostics.
 struct LinearSolveResult {
   Eigen::VectorXd solution;
   double relative_residual = 0.0;
   int iterations = 0;
 };
 
+// Solve a sparse linear system with the requested iterative method and tolerances.
 inline LinearSolveResult solve_linear_system(
     const LinearSystem& system,
     SolverKind kind,
@@ -31,6 +35,7 @@ inline LinearSolveResult solve_linear_system(
     int max_iterations) {
   LinearSolveResult result;
 
+  // Use BiCGSTAB for the generally nonsymmetric momentum systems.
   if (kind == SolverKind::kBiCGSTAB) {
     Eigen::BiCGSTAB<Eigen::SparseMatrix<double, Eigen::RowMajor>> solver;
     solver.setTolerance(tolerance);
@@ -45,6 +50,7 @@ inline LinearSolveResult solve_linear_system(
     return result;
   }
 
+  // Use ConjugateGradient for the symmetric pressure-correction system.
   Eigen::ConjugateGradient<
       Eigen::SparseMatrix<double, Eigen::RowMajor>,
       Eigen::Lower | Eigen::Upper>

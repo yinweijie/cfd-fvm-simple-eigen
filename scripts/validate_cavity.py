@@ -122,7 +122,31 @@ def draw_series_points(elements, series, color, x_min, x_max, y_min, y_max, left
         )
 
 
-def draw_panel(elements, title, x_label, y_label, reference, numerical, errors, bounds):
+def draw_series_line(elements, series, color, dasharray, x_min, x_max, y_min, y_max, left, top, width, height):
+    line = polyline_points(series, x_min, x_max, y_min, y_max, left, top, width, height)
+    dash_attr = "" if dasharray is None else f' stroke-dasharray="{dasharray}"'
+    elements.append(
+        f'<polyline points="{line}" fill="none" stroke="{color}" stroke-width="2.5"{dash_attr} />'
+    )
+
+
+def draw_legend_entry(elements, x, y, label, color, render_mode):
+    if render_mode == "points":
+        elements.append(
+            f'<circle cx="{x + 15}" cy="{y}" r="3.5" fill="{color}" stroke="white" stroke-width="1" />'
+        )
+    else:
+        dash_attr = "" if render_mode == "solid" else ' stroke-dasharray="8 6"'
+        elements.append(
+            f'<line x1="{x}" y1="{y}" x2="{x + 30}" y2="{y}" '
+            f'stroke="{color}" stroke-width="2.5"{dash_attr} />'
+        )
+    elements.append(
+        f'<text x="{x + 38}" y="{y + 4}" font-size="12" fill="#0f172a">{svg_escape(label)}</text>'
+    )
+
+
+def draw_panel(elements, title, x_label, y_label, reference, numerical, errors, bounds, plot_style):
     left, top, width, height = bounds
     x_min = 0.0
     x_max = 1.0
@@ -155,14 +179,49 @@ def draw_panel(elements, title, x_label, y_label, reference, numerical, errors, 
         'fill="none" stroke="#334155" stroke-width="1.5" />'
     )
 
-    numerical_line = polyline_points(
-        numerical, x_min, x_max, y_min, y_max, plot_left, plot_top, plot_width, plot_height
-    )
-    elements.append(
-        f'<polyline points="{numerical_line}" fill="none" stroke="#0f766e" stroke-width="2.5" />'
-    )
-    draw_series_points(
-        elements, reference, "#dc2626", x_min, x_max, y_min, y_max, plot_left, plot_top, plot_width, plot_height
+    if plot_style["reference_render"] == "points":
+        draw_series_points(
+            elements,
+            reference,
+            plot_style["reference_color"],
+            x_min,
+            x_max,
+            y_min,
+            y_max,
+            plot_left,
+            plot_top,
+            plot_width,
+            plot_height,
+        )
+    else:
+        draw_series_line(
+            elements,
+            reference,
+            plot_style["reference_color"],
+            None if plot_style["reference_render"] == "solid" else "8 6",
+            x_min,
+            x_max,
+            y_min,
+            y_max,
+            plot_left,
+            plot_top,
+            plot_width,
+            plot_height,
+        )
+
+    draw_series_line(
+        elements,
+        numerical,
+        plot_style["results_color"],
+        None if plot_style["results_render"] == "solid" else "8 6",
+        x_min,
+        x_max,
+        y_min,
+        y_max,
+        plot_left,
+        plot_top,
+        plot_width,
+        plot_height,
     )
 
     legend_x = left + width - 175
@@ -171,18 +230,21 @@ def draw_panel(elements, title, x_label, y_label, reference, numerical, errors, 
         f'<rect x="{legend_x}" y="{legend_y}" width="155" height="44" rx="8" '
         'fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />'
     )
-    elements.append(
-        f'<line x1="{legend_x + 12}" y1="{legend_y + 14}" x2="{legend_x + 42}" y2="{legend_y + 14}" '
-        'stroke="#0f766e" stroke-width="2.5" />'
+    draw_legend_entry(
+        elements,
+        legend_x + 12,
+        legend_y + 14,
+        plot_style["results_label"],
+        plot_style["results_color"],
+        plot_style["results_render"],
     )
-    elements.append(
-        f'<text x="{legend_x + 50}" y="{legend_y + 18}" font-size="12" fill="#0f172a">Simulation</text>'
-    )
-    elements.append(
-        f'<circle cx="{legend_x + 27}" cy="{legend_y + 31}" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />'
-    )
-    elements.append(
-        f'<text x="{legend_x + 50}" y="{legend_y + 35}" font-size="12" fill="#0f172a">Benchmark</text>'
+    draw_legend_entry(
+        elements,
+        legend_x + 12,
+        legend_y + 31,
+        plot_style["reference_label"],
+        plot_style["reference_color"],
+        plot_style["reference_render"],
     )
 
     elements.append(
@@ -196,7 +258,9 @@ def draw_panel(elements, title, x_label, y_label, reference, numerical, errors, 
     )
 
 
-def write_validation_plot(plot_path, results_dir, u_reference, v_reference, u_numerical, v_numerical, summary):
+def write_validation_plot(
+    plot_path, results_dir, u_reference, v_reference, u_numerical, v_numerical, summary, plot_style
+):
     width = 1280
     height = 900
     elements = [
@@ -205,7 +269,7 @@ def write_validation_plot(plot_path, results_dir, u_reference, v_reference, u_nu
     elements.append('<rect width="100%" height="100%" fill="#eef2ff" />')
     elements.append(
         '<text x="48" y="56" font-size="30" font-weight="700" fill="#0f172a">'
-        'CFD Cavity Validation: Simulation vs Benchmark</text>'
+        f'{svg_escape(plot_style["title"])}</text>'
     )
     elements.append(
         f'<text x="48" y="86" font-size="14" fill="#475569">Results: {svg_escape(results_dir)}</text>'
@@ -225,6 +289,7 @@ def write_validation_plot(plot_path, results_dir, u_reference, v_reference, u_nu
         u_numerical,
         summary["u"],
         (40, 140, 1200, 330),
+        plot_style,
     )
     draw_panel(
         elements,
@@ -235,6 +300,7 @@ def write_validation_plot(plot_path, results_dir, u_reference, v_reference, u_nu
         v_numerical,
         summary["v"],
         (40, 510, 1200, 330),
+        plot_style,
     )
     elements.append("</svg>")
     plot_path.write_text("\n".join(elements) + "\n", encoding="utf-8")
@@ -248,6 +314,14 @@ def main():
     parser.add_argument("--u-threshold", type=float, default=0.15)
     parser.add_argument("--v-threshold", type=float, default=0.15)
     parser.add_argument("--plot-out", default=None)
+    parser.add_argument("--summary-out", default=None)
+    parser.add_argument("--plot-title", default="CFD Cavity Validation: Simulation vs Benchmark")
+    parser.add_argument("--reference-label", default="Benchmark")
+    parser.add_argument("--results-label", default="Simulation")
+    parser.add_argument("--reference-render", choices=("points", "solid", "dashed"), default="points")
+    parser.add_argument("--results-render", choices=("solid", "dashed"), default="solid")
+    parser.add_argument("--reference-color", default="#dc2626")
+    parser.add_argument("--results-color", default="#0f766e")
     args = parser.parse_args()
 
     results_dir = Path(args.results)
@@ -269,15 +343,25 @@ def main():
             "v_linf": args.v_threshold,
         },
     }
+    plot_style = {
+        "title": args.plot_title,
+        "reference_label": args.reference_label,
+        "results_label": args.results_label,
+        "reference_render": args.reference_render,
+        "results_render": args.results_render,
+        "reference_color": args.reference_color,
+        "results_color": args.results_color,
+    }
     plot_path = Path(args.plot_out) if args.plot_out else results_dir / "validation_plot.svg"
     write_validation_plot(
-        plot_path, results_dir, u_reference, v_reference, u_numerical, v_numerical, summary
+        plot_path, results_dir, u_reference, v_reference, u_numerical, v_numerical, summary, plot_style
     )
     summary["artifacts"] = {
         "plot": str(plot_path),
     }
+    summary["plot_style"] = plot_style
 
-    summary_path = results_dir / "validation_summary.json"
+    summary_path = Path(args.summary_out) if args.summary_out else results_dir / "validation_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2))
     return 0 if passed else 1
