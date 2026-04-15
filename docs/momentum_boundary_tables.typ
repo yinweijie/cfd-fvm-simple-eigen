@@ -45,11 +45,44 @@ which is moved to the left-hand side and therefore adds $+a_B$ to the diagonal.
 This is why stationary walls do not create an explicit constant source term in the
 momentum equations in this implementation.
 
-For the moving lid in the `u` equation,
+For the moving lid in the $u$ equation,
 
 $
 u_G = 2 U_"lid" - u_P
 $
+
+This relation comes from enforcing the wall Dirichlet condition at the wall
+midpoint between the interior cell center $P$ and the ghost-cell center $G$.
+Using linear interpolation across that half-cell pair,
+
+$
+u_"wall" = (u_P + u_G) / 2
+$
+
+and for the lid we require
+
+$
+u_"wall" = U_"lid"
+$
+
+Therefore
+
+$
+(u_P + u_G) / 2 = U_"lid"
+$
+
+$
+u_P + u_G = 2 U_"lid"
+$
+
+$
+u_G = 2 U_"lid" - u_P
+$
+
+So the ghost value is not an independent physical unknown. It is the algebraic
+value needed so that the wall-interpolated velocity matches the prescribed lid
+speed. A stationary wall is the special case $U_"lid" = 0$, which reduces to
+$u_G = -u_P$.
 
 and the north-side contribution becomes
 
@@ -68,6 +101,17 @@ $
 
 so they are handled differently from the velocity Dirichlet walls.
 Their wall treatment does not inject a moving-wall-type source term.
+
+#figure(
+  image("ghost_cell_velocity_boundaries.png", width: 100%),
+  caption: [
+    Ghost-cell handling for stationary velocity walls and the moving lid. The
+    physical wall lies midway between interior cell center $P$ and ghost-cell
+    center $G$. Static walls enforce zero wall velocity through
+    $u_G = -u_P$, $v_G = -v_P$, while the lid enforces the prescribed tangential
+    speed through $u_G = 2 U_"lid" - u_P$ and $v_G = -v_P$.
+  ],
+)
 
 == Definitions
 
