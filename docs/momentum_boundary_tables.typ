@@ -241,11 +241,11 @@ plus a pressure-correction term. Boundary faces on the physical walls are set to
 zero normal velocity instead of using these formulas.
 
 $ 
-u_e = (u_P + u_E)/2 - d_e ((p_E - p_P) / Delta x - (g_(x,P) + g_(x,E)) / 2)
+u_e = (u_P + u_E)/2 - d_e ((p_E - p_P) / (Delta x) - (g_(x,P) + g_(x,E)) / 2)
 $
 
 $ 
-v_n = (v_P + v_N)/2 - d_n ((p_N - p_P) / Delta y - (g_(y,P) + g_(y,N)) / 2)
+v_n = (v_P + v_N)/2 - d_n ((p_N - p_P) / (Delta y) - (g_(y,P) + g_(y,N)) / 2)
 $
 
 $
@@ -262,19 +262,19 @@ The pressure-correction equation uses the predictor face velocities to form the
 mass-imbalance right-hand side and uses neighboring $d_u$ and $d_v$ values to form the four-point stencil.
 
 $
-a_E^("pc") = rho Delta y ((d_(u,P) + d_(u,E)) / 2) / Delta x
+a_E^("pc") = rho Delta y ((d_(u,P) + d_(u,E)) / 2) / (Delta x)
 $
 
 $
-a_W^("pc") = rho Delta y ((d_(u,P) + d_(u,W)) / 2) / Delta x
+a_W^("pc") = rho Delta y ((d_(u,P) + d_(u,W)) / 2) / (Delta x)
 $
 
 $
-a_N^("pc") = rho Delta x ((d_(v,P) + d_(v,N)) / 2) / Delta y
+a_N^("pc") = rho Delta x ((d_(v,P) + d_(v,N)) / 2) / (Delta y)
 $
 
 $
-a_S^("pc") = rho Delta x ((d_(v,P) + d_(v,S)) / 2) / Delta y
+a_S^("pc") = rho Delta x ((d_(v,P) + d_(v,S)) / 2) / (Delta y)
 $
 
 $
