@@ -1,0 +1,103 @@
+flowchart TB
+  %% Data ownership and mutation paths for the CFD cavity solver.
+  %% Arrow convention:
+  %%   solid --> creates / passes / returns
+  %%   thick ==> owns / contains / exports
+  %%   dotted -.-> reads
+  %%   dashed -.- updates mutable state
+
+  subgraph Legend["Line Meaning"]
+    LCreate["A creates / passes / returns B"] --> LCreateTarget["B"]
+    LOwn["A owns / contains / exports B"] ==> LOwnTarget["B"]
+    LRead["A reads B"] -.-> LReadTarget["B"]
+    LUpdate["A updates mutable B"] -.- LUpdateTarget["B"]
+  end
+
+  subgraph MainScope["main() Stack Scope"]
+    CLI["Input: CLI arguments"]
+    MainConfig["Stack object: CavityCase config<br/>Data: mesh, Re, controls, output_dir"]
+    Summary["Stack object: SolveSummary summary<br/>Data: converged flag, iteration count, residual history"]
+  end
+
+  subgraph SolverObject["SimpleSolver Object"]
+    Solver["Object: SimpleSolver"]
+    OwnedConfig["Member: config_<br/>Type: CavityCase copy"]
+    Grid["Member: grid_<br/>Type: StructuredGrid"]
+    Fields["Member: fields_<br/>Type: FlowFields"]
+  end
+
+  subgraph FieldStorage["FlowFields Contents"]
+    CellFields["Contained data: cell fields<br/>Names: pressure, pressure_correction, u, v, u_star, v_star"]
+    CorrectionFactors["Contained data: correction factors<br/>Names: d_u, d_v"]
+    FaceFields["Contained data: face fields<br/>Names: u_face, v_face"]
+  end
+
+  subgraph TemporaryData["Per-Iteration Temporaries"]
+    MomentumAssembly["Temporary: MomentumAssembly<br/>Contains: LinearSystem + relaxed diagonal"]
+    PressureAssembly["Temporary: PressureCorrectionAssembly<br/>Contains: LinearSystem + mass imbalance"]
+    LinearResult["Temporary: LinearSolveResult<br/>Contains: solution vector, residual, iteration count"]
+    BeforeFields["Temporary: u_before / v_before<br/>Purpose: copies for correction metrics"]
+    Metrics["Temporary: IterationMetrics<br/>Contains: continuity, momentum, pressure, correction residuals"]
+  end
+
+  subgraph StatelessHelpers["Stateless Functions"]
+    Discretization["Helper: discretization.cpp functions<br/>Role: boundary, face velocity, assembly, residuals"]
+    LinearSolve["Helper: solve_linear_system()"]
+    Output["Helper: write_results()"]
+  end
+
+  subgraph Filesystem["Filesystem Outputs"]
+    Files["Output: results/&lt;case&gt;/*<br/>Files: u.csv, v.csv, p.csv, centerlines, residuals.csv, summary.txt"]
+  end
+
+  CLI -->|"parsed by main"| MainConfig
+  MainConfig -->|"copied into constructor"| Solver
+
+  Solver ==>|"owns"| OwnedConfig
+  Solver ==>|"owns"| Grid
+  Solver ==>|"owns"| Fields
+  Fields ==>|"contains"| CellFields
+  Fields ==>|"contains"| CorrectionFactors
+  Fields ==>|"contains"| FaceFields
+
+  Solver -.->|"reads controls / constants"| OwnedConfig
+  Solver -.->|"reads mesh dimensions / indices"| Grid
+  Solver -.-|"loads predictor and correction solutions"| Fields
+
+  Solver -->|"passes refs"| Discretization
+  Discretization -.->|"reads"| OwnedConfig
+  Discretization -.->|"reads"| Grid
+  Discretization -.->|"reads current state"| Fields
+  Discretization -.-|"boundary conditions / face velocities"| Fields
+  Discretization -->|"returns u/v assemblies"| MomentumAssembly
+  Discretization -->|"returns pressure assembly"| PressureAssembly
+
+  MomentumAssembly -->|"system input"| LinearSolve
+  PressureAssembly -->|"system input"| LinearSolve
+  LinearSolve -->|"returns"| LinearResult
+  LinearResult -->|"solution scattered into"| Fields
+  MomentumAssembly -->|"diagonal updates"| CorrectionFactors
+
+  Solver -->|"copies before correction"| BeforeFields
+  Solver -.->|"compares against corrected fields"| BeforeFields
+  Solver -->|"records"| Metrics
+  Metrics ==>|"appended to"| Summary
+
+  Solver -->|"returns"| Summary
+  Solver -.->|"exposes final grid/config/fields"| Output
+  Summary -.->|"read by"| Output
+  Output ==>|"exports"| Files
+
+  classDef main fill:#dbeafe,stroke:#2563eb,color:#111827;
+  classDef owned fill:#dcfce7,stroke:#16a34a,color:#111827;
+  classDef temp fill:#fef3c7,stroke:#d97706,color:#111827;
+  classDef helper fill:#ffedd5,stroke:#ea580c,color:#111827;
+  classDef file fill:#f3e8ff,stroke:#9333ea,color:#111827;
+  classDef legend fill:#f8fafc,stroke:#64748b,color:#111827;
+
+  class CLI,MainConfig,Summary main;
+  class Solver,OwnedConfig,Grid,Fields,CellFields,CorrectionFactors,FaceFields owned;
+  class MomentumAssembly,PressureAssembly,LinearResult,BeforeFields,Metrics temp;
+  class Discretization,LinearSolve,Output helper;
+  class Files file;
+  class LCreate,LCreateTarget,LOwn,LOwnTarget,LRead,LReadTarget,LUpdate,LUpdateTarget legend;

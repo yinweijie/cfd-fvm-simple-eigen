@@ -1,0 +1,118 @@
+flowchart TB
+  %% High-level source structure for the CFD cavity solver.
+  %% Reading rule:
+  %%   - A module subgraph groups the responsibilities implemented by that module.
+  %%   - Edge labels repeat the responsibility that causes the relationship.
+  %%   - Data nodes describe shared state, not extra behavior.
+
+  subgraph Legend["Line Meaning"]
+    LAction["responsibility node"] -->|"same responsibility text"| LTarget["target module / data"]
+    LRead["responsibility reads data"] -.->|"read-only input"| LReadTarget["data"]
+    LOwn["responsibility owns or exports data"] ==>|"ownership / output"| LOwnTarget["data / files"]
+  end
+
+  subgraph Entry["Entry Point"]
+    subgraph MainModule["Module: src/main.cpp"]
+      R1["R1<br/>parse CLI into CavityCase"]
+      R2["R2<br/>construct SimpleSolver"]
+      R3["R3<br/>run SIMPLE solve"]
+      R4["R4<br/>export final results"]
+    end
+  end
+
+  subgraph Runtime["Solver Runtime"]
+    subgraph SolverModule["Module: src/simple_solver.cpp<br/>Type: SimpleSolver"]
+      S1["S1<br/>own solver state"]
+      S2["S2<br/>call SIMPLE stage helpers"]
+      S3["S3<br/>solve assembled linear systems"]
+      S4["S4<br/>scatter solutions into FlowFields"]
+      S5["S5<br/>collect metrics and convergence state"]
+    end
+
+    subgraph DiscModule["Module: src/discretization.cpp"]
+      D1["D1<br/>update boundary ghost cells"]
+      D2["D2<br/>reconstruct Rhie-Chow face velocities"]
+      D3["D3<br/>assemble momentum systems"]
+      D4["D4<br/>assemble pressure-correction system"]
+      D5["D5<br/>compute continuity residual"]
+    end
+
+    subgraph LinearModule["Header: include/cfd/linear_system.hpp"]
+      L1["L1<br/>solve sparse LinearSystem"]
+    end
+  end
+
+  subgraph Data["Core Data Model"]
+    Case["Data: CavityCase + SolverControls<br/>physics, mesh spec, controls, output path"]
+    Grid["Data: StructuredGrid<br/>cell geometry and flat indices"]
+    Fields["Data: FlowFields<br/>p, p', u/v, u*/v*, d_u/d_v, faces"]
+    System["Data: LinearSystem<br/>sparse matrix + rhs"]
+    Summary["Data: SolveSummary<br/>converged flag + residual history"]
+    Eigen["Library: Eigen<br/>MatrixXd / VectorXd / SparseMatrix"]
+  end
+
+  subgraph Export["Result Export"]
+    subgraph OutputModule["Module: src/output.cpp"]
+      O1["O1<br/>read final solver state"]
+      O2["O2<br/>write field, centerline, residual, summary files"]
+    end
+    Files["Output: results/&lt;case&gt;/*<br/>u/v/p CSV, centerlines, residuals, summary"]
+  end
+
+  R1 -->|"R1 parse CLI into CavityCase"| Case
+  R2 -->|"R2 construct SimpleSolver"| S1
+  R3 -->|"R3 run SIMPLE solve"| S2
+  R4 -->|"R4 export final results"| O1
+
+  S1 ==>|"S1 own config_"| Case
+  S1 ==>|"S1 own grid_"| Grid
+  S1 ==>|"S1 own fields_"| Fields
+  S2 -->|"S2 call boundary / face / assembly / residual helpers"| D1
+  S2 -->|"S2 call boundary / face / assembly / residual helpers"| D2
+  S2 -->|"S2 call boundary / face / assembly / residual helpers"| D3
+  S2 -->|"S2 call boundary / face / assembly / residual helpers"| D4
+  S2 -->|"S2 call boundary / face / assembly / residual helpers"| D5
+  S3 -->|"S3 solve assembled linear systems"| L1
+  S4 -->|"S4 scatter solutions into FlowFields"| Fields
+  S5 -->|"S5 collect metrics and convergence state"| Summary
+
+  D1 -.->|"D1 read grid and case rules"| Grid
+  D1 -.->|"D1 read grid and case rules"| Case
+  D1 -->|"D1 update boundary ghost cells"| Fields
+  D2 -.->|"D2 read grid, pressure, and correction factors"| Grid
+  D2 -.->|"D2 read grid, pressure, and correction factors"| Fields
+  D2 -->|"D2 reconstruct Rhie-Chow face velocities"| Fields
+  D3 -.->|"D3 read grid, case, fields"| Grid
+  D3 -.->|"D3 read grid, case, fields"| Case
+  D3 -.->|"D3 read grid, case, fields"| Fields
+  D3 -->|"D3 assemble momentum systems"| System
+  D4 -.->|"D4 read grid, case, predicted fields"| Grid
+  D4 -.->|"D4 read grid, case, predicted fields"| Case
+  D4 -.->|"D4 read grid, case, predicted fields"| Fields
+  D4 -->|"D4 assemble pressure-correction system"| System
+  D5 -.->|"D5 read corrected face velocities"| Fields
+  D5 -->|"D5 compute continuity residual"| Summary
+
+  L1 -.->|"L1 use Eigen iterative solvers"| Eigen
+  L1 -.->|"L1 read sparse matrix + rhs"| System
+
+  O1 -.->|"O1 read final grid"| Grid
+  O1 -.->|"O1 read final config"| Case
+  O1 -.->|"O1 read final fields"| Fields
+  O1 -.->|"O1 read residual history"| Summary
+  O2 ==>|"O2 write field, centerline, residual, summary files"| Files
+
+  Fields -.->|"FlowFields stores Eigen dense arrays"| Eigen
+  System -.->|"LinearSystem stores Eigen sparse/vector data"| Eigen
+
+  classDef entry fill:#dbeafe,stroke:#2563eb,color:#111827;
+  classDef runtime fill:#ffedd5,stroke:#ea580c,color:#111827;
+  classDef data fill:#dcfce7,stroke:#16a34a,color:#111827;
+  classDef export fill:#f3e8ff,stroke:#9333ea,color:#111827;
+  classDef legend fill:#f8fafc,stroke:#64748b,color:#111827;
+
+  class R1,R2,R3,R4 entry;
+  class S1,S2,S3,S4,S5,D1,D2,D3,D4,D5,L1 runtime;
+  class Case,Grid,Fields,System,Summary,Eigen data;
+  class O1,O2,Files export;
+  class LAction,LTarget,LRead,LReadTarget,LOwn,LOwnTarget legend;

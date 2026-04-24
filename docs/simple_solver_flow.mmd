@@ -1,0 +1,54 @@
+sequenceDiagram
+  autonumber
+  participant Main as src/main.cpp
+  participant Solver as SimpleSolver
+  participant Disc as discretization.cpp
+  participant Linear as solve_linear_system
+  participant Fields as FlowFields
+  participant Output as output.cpp
+  participant Files as results/*
+
+  Main->>Solver: construct CavityCase-backed solver
+  Solver->>Disc: apply_cavity_boundary_conditions()
+  Disc->>Fields: initialize ghost cells
+  Solver->>Disc: update_face_velocities()
+  Disc->>Fields: initialize u_face / v_face
+
+  Main->>Solver: run()
+  loop SIMPLE iteration until converged or max_iterations
+    Solver->>Disc: apply boundaries + refresh corrected face velocities
+    Disc->>Fields: update ghost cells and face arrays
+
+    Solver->>Disc: assemble_u_momentum(grid, config, fields)
+    Disc-->>Solver: u LinearSystem + relaxed diagonal
+    Solver->>Linear: solve BiCGSTAB(u system)
+    Linear-->>Solver: u* vector + residual
+    Solver->>Fields: load u_star and update d_u
+
+    Solver->>Disc: update_face_velocities(u_star, v)
+    Disc->>Fields: refresh predictor face fluxes
+
+    Solver->>Disc: assemble_v_momentum(grid, config, fields)
+    Disc-->>Solver: v LinearSystem + relaxed diagonal
+    Solver->>Linear: solve BiCGSTAB(v system)
+    Linear-->>Solver: v* vector + residual
+    Solver->>Fields: load v_star and update d_v
+
+    Solver->>Disc: assemble_pressure_correction(grid, config, fields)
+    Disc-->>Solver: pressure-correction LinearSystem
+    Solver->>Linear: solve ConjugateGradient(p' system)
+    Linear-->>Solver: p' vector + residual
+    Solver->>Fields: load pressure_correction
+
+    Solver->>Fields: correct u, v, and pressure
+    Solver->>Disc: apply boundaries + refresh corrected face velocities
+    Disc->>Fields: make corrected state boundary-consistent
+
+    Solver->>Disc: compute_continuity_residual()
+    Disc-->>Solver: continuity residual
+    Solver->>Solver: collect metrics and check convergence gates
+  end
+
+  Solver-->>Main: SolveSummary + final fields
+  Main->>Output: write_results(grid, config, fields, summary)
+  Output-->>Files: write CSV/TXT outputs
