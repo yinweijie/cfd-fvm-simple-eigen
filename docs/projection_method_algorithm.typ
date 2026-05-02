@@ -39,7 +39,7 @@ First compute an intermediate velocity $bold(u)^*$ from the momentum equation
 using the current pressure $p^k$:
 
 $
-rho (bold(u)^* - bold(u)^k) / Delta t
+(rho (bold(u)^* - bold(u)^k)) / (Delta t)
 + C(bold(u)^k, bold(u)^*)
 - D(bold(u)^*) = -nabla p^k
 $
@@ -59,7 +59,7 @@ for $u^*$ and one for $v^*$.
 The projection correction has the form:
 
 $
-bold(u)^(k+1) = bold(u)^* - (Delta t / rho) nabla phi
+bold(u)^(k+1) = bold(u)^* - (Delta t) / (rho) nabla phi
 $
 
 where $phi$ is the pressure increment. Enforcing incompressibility gives:
@@ -71,13 +71,13 @@ $
 Substitute the correction formula:
 
 $
-nabla dot bold(u)^* - (Delta t / rho) nabla^2 phi = 0
+nabla dot bold(u)^* - (Delta t) / (rho) nabla^2 phi = 0
 $
 
 so the pressure increment satisfies:
 
 $
-nabla^2 phi = (rho / Delta t) nabla dot bold(u)^*
+nabla^2 phi = (rho) / (Delta t) nabla dot bold(u)^*
 $
 
 In finite-volume form, this is assembled from the predicted face-flux imbalance
@@ -89,11 +89,11 @@ be pinned because only pressure gradients affect the velocity.
 After solving for $phi$, update the cell-centered velocity:
 
 $
-u^(k+1) = u^* - (Delta t / rho) partial_x phi
+u^(k+1) = u^* - (Delta t) / (rho) partial_x phi
 $
 
 $
-v^(k+1) = v^* - (Delta t / rho) partial_y phi
+v^(k+1) = v^* - (Delta t) / (rho) partial_y phi
 $
 
 This is the projection step: it removes the divergence contained in the
@@ -142,7 +142,7 @@ The main state is stored in `FlowFields`:
 - `pressure`: corrected pressure, corresponding to $p^k$.
 - `pressure_correction`: pressure increment, corresponding to $phi$.
 - `d_u`, `d_v`: velocity response factors. For projection they are set to
-  `projection_dt / density`, matching $Delta t / rho$.
+  `projection_dt / density`, matching $(Delta t) / (rho)$.
 - `u_face`, `v_face`: Rhie-Chow reconstructed face velocities used for
   convection, continuity residuals, and pressure-increment assembly.
 
@@ -211,21 +211,21 @@ the same upwind-convection and central-diffusion stencil as the SIMPLE
 momentum assembly. The projection-specific change is the pseudo-transient term:
 
 $
-a_P^("proj") = a_P^("base") + rho Delta x Delta y / Delta t
+a_P^("proj") = a_P^("base") + (rho Delta x Delta y) / (Delta t)
 $
 
 The right-hand side includes the current pressure force and the old-velocity
 source:
 
 $
-b_P^("u,proj") = (p_W - p_E) Delta y / 2
-+ (rho Delta x Delta y / Delta t) u_P^k
+b_P^("u,proj") = ((p_W - p_E) Delta y) / (2)
++ (rho Delta x Delta y) / (Delta t) u_P^k
 + S_U^("u")
 $
 
 $
-b_P^("v,proj") = (p_S - p_N) Delta x / 2
-+ (rho Delta x Delta y / Delta t) v_P^k
+b_P^("v,proj") = ((p_S - p_N) Delta x) / (2)
++ (rho Delta x Delta y) / (Delta t) v_P^k
 + S_U^("v")
 $
 
@@ -238,7 +238,7 @@ treatment through $S_U^("u") = 2 a_N U_"lid"$.
 called after:
 
 $
-d_u = d_v = Delta t / rho
+d_u = d_v = (Delta t) / (rho)
 $
 
 The function reconstructs predictor face velocities from `u_star`, `v_star`,
