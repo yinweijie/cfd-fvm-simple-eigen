@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900">
+<rect width="100%" height="100%" fill="#eef2ff" />
+<text x="48" y="56" font-size="30" font-weight="700" fill="#0f172a">CFD Cavity Validation: Simulation vs Benchmark</text>
+<text x="48" y="86" font-size="14" fill="#475569">Results: results/cavity_re100_projection</text>
+<text x="48" y="110" font-size="14" fill="#475569">Overall verdict: PASS</text>
+<rect x="40" y="140" width="1200" height="330" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+<text x="56" y="166" font-size="18" font-weight="700" fill="#0f172a">u centerline at x = 0.5</text>
+<text x="56" y="188" font-size="12" fill="#475569">Linf=0.1144, L2=0.0306, samples=17</text>
+<line x1="100.00" y1="425.00" x2="100.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="100.00" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.00</text>
+<line x1="377.50" y1="425.00" x2="377.50" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="377.50" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.25</text>
+<line x1="655.00" y1="425.00" x2="655.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="655.00" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.50</text>
+<line x1="932.50" y1="425.00" x2="932.50" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="932.50" y="447.00" text-anchor="middle" font-size="12" fill="#374151">0.75</text>
+<line x1="1210.00" y1="425.00" x2="1210.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="1210.00" y="447.00" text-anchor="middle" font-size="12" fill="#374151">1.00</text>
+<line x1="100.00" y1="425.00" x2="1210.00" y2="425.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="429.00" text-anchor="end" font-size="12" fill="#374151">-0.31</text>
+<line x1="100.00" y1="371.25" x2="1210.00" y2="371.25" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="375.25" text-anchor="end" font-size="12" fill="#374151">0.04</text>
+<line x1="100.00" y1="317.50" x2="1210.00" y2="317.50" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="321.50" text-anchor="end" font-size="12" fill="#374151">0.39</text>
+<line x1="100.00" y1="263.75" x2="1210.00" y2="263.75" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="267.75" text-anchor="end" font-size="12" fill="#374151">0.75</text>
+<line x1="100.00" y1="210.00" x2="1210.00" y2="210.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="214.00" text-anchor="end" font-size="12" fill="#374151">1.10</text>
+<rect x="100" y="210" width="1110" height="215" fill="none" stroke="#334155" stroke-width="1.5" />
+<circle cx="100.00" cy="377.89" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="160.72" cy="383.58" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="169.38" cy="384.31" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="178.03" cy="385.20" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="212.78" cy="387.74" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="290.81" cy="393.43" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="412.24" cy="401.86" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="602.94" cy="410.17" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="655.00" cy="409.39" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="785.09" cy="398.77" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="915.18" cy="377.38" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1045.28" cy="342.46" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1157.94" cy="272.71" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1166.60" cy="265.05" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1175.37" cy="257.17" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1184.03" cy="249.13" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1210.00" cy="224.83" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<polyline points="117.34,379.74 152.03,382.94 186.72,385.75 221.41,388.29 256.09,390.63 290.78,392.84 325.47,394.94 360.16,396.97 394.84,398.92 429.53,400.76 464.22,402.48 498.91,404.01 533.59,405.28 568.28,406.21 602.97,406.70 637.66,406.68 672.34,406.04 707.03,404.71 741.72,402.62 776.41,399.74 811.09,396.06 845.78,391.59 880.47,386.33 915.16,380.24 949.84,373.20 984.53,364.93 1019.22,354.86 1053.91,342.14 1088.59,325.58 1123.28,303.81 1157.97,275.84 1192.66,242.34" fill="none" stroke="#0f766e" stroke-width="2.5" />
+<rect x="1065" y="162" width="155" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+<line x1="1077" y1="176" x2="1107" y2="176" stroke="#0f766e" stroke-width="2.5" />
+<text x="1115" y="180" font-size="12" fill="#0f172a">Simulation</text>
+<circle cx="1092" cy="193" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<text x="1115" y="197" font-size="12" fill="#0f172a">Benchmark</text>
+<text x="655.00" y="452.00" text-anchor="middle" font-size="13" fill="#334155">y</text>
+<text x="58.00" y="317.50" text-anchor="middle" font-size="13" fill="#334155" transform="rotate(-90 58.00 317.50)">u</text>
+<rect x="40" y="510" width="1200" height="330" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+<text x="56" y="536" font-size="18" font-weight="700" fill="#0f172a">v centerline at y = 0.5</text>
+<text x="56" y="558" font-size="12" fill="#475569">Linf=0.0329, L2=0.0132, samples=17</text>
+<line x1="100.00" y1="795.00" x2="100.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="100.00" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.00</text>
+<line x1="377.50" y1="795.00" x2="377.50" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="377.50" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.25</text>
+<line x1="655.00" y1="795.00" x2="655.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="655.00" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.50</text>
+<line x1="932.50" y1="795.00" x2="932.50" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="932.50" y="817.00" text-anchor="middle" font-size="12" fill="#374151">0.75</text>
+<line x1="1210.00" y1="795.00" x2="1210.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="1210.00" y="817.00" text-anchor="middle" font-size="12" fill="#374151">1.00</text>
+<line x1="100.00" y1="795.00" x2="1210.00" y2="795.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="799.00" text-anchor="end" font-size="12" fill="#374151">-0.28</text>
+<line x1="100.00" y1="741.25" x2="1210.00" y2="741.25" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="745.25" text-anchor="end" font-size="12" fill="#374151">-0.16</text>
+<line x1="100.00" y1="687.50" x2="1210.00" y2="687.50" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="691.50" text-anchor="end" font-size="12" fill="#374151">-0.04</text>
+<line x1="100.00" y1="633.75" x2="1210.00" y2="633.75" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="637.75" text-anchor="end" font-size="12" fill="#374151">0.09</text>
+<line x1="100.00" y1="580.00" x2="1210.00" y2="580.00" stroke="#d8dde6" stroke-width="1" />
+<text x="90.00" y="584.00" text-anchor="end" font-size="12" fill="#374151">0.21</text>
+<rect x="100" y="580" width="1110" height="215" fill="none" stroke="#334155" stroke-width="1.5" />
+<circle cx="100.00" cy="672.06" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="169.38" cy="631.38" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="178.03" cy="627.60" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="186.69" cy="624.07" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="204.12" cy="617.79" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="273.49" cy="601.22" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="351.53" cy="594.92" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="360.18" cy="594.83" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="655.00" cy="648.03" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="993.22" cy="780.17" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1053.93" cy="770.97" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1105.99" cy="746.60" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1149.28" cy="717.51" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1157.94" cy="711.12" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1166.60" cy="704.63" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1175.37" cy="698.09" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<circle cx="1210.00" cy="672.06" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<polyline points="117.34,659.53 152.03,639.58 186.72,624.42 221.41,613.48 256.09,606.10 290.78,601.65 325.47,599.58 360.16,599.43 394.84,600.91 429.53,603.77 464.22,607.89 498.91,613.20 533.59,619.68 568.28,627.31 602.97,636.12 637.66,646.10 672.34,657.21 707.03,669.40 741.72,682.53 776.41,696.42 811.09,710.83 845.78,725.36 880.47,739.45 915.16,752.32 949.84,762.99 984.53,770.26 1019.22,772.75 1053.91,769.10 1088.59,758.23 1123.28,739.84 1157.97,715.06 1192.66,686.57" fill="none" stroke="#0f766e" stroke-width="2.5" />
+<rect x="1065" y="532" width="155" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+<line x1="1077" y1="546" x2="1107" y2="546" stroke="#0f766e" stroke-width="2.5" />
+<text x="1115" y="550" font-size="12" fill="#0f172a">Simulation</text>
+<circle cx="1092" cy="563" r="3.5" fill="#dc2626" stroke="white" stroke-width="1" />
+<text x="1115" y="567" font-size="12" fill="#0f172a">Benchmark</text>
+<text x="655.00" y="822.00" text-anchor="middle" font-size="13" fill="#334155">x</text>
+<text x="58.00" y="687.50" text-anchor="middle" font-size="13" fill="#334155" transform="rotate(-90 58.00 687.50)">v</text>
+</svg>

@@ -1,28 +1,10 @@
 #pragma once
 
-#include <vector>
-
 #include "cfd/case.hpp"
 #include "cfd/discretization.hpp"
+#include "cfd/solver.hpp"
 
 namespace cfd {
-
-// Convergence history for one SIMPLE iteration.
-struct IterationMetrics {
-  int iteration = 0;
-  double continuity_residual = 0.0;
-  double u_momentum_residual = 0.0;
-  double v_momentum_residual = 0.0;
-  double pressure_correction_residual = 0.0;
-  double max_velocity_correction = 0.0;
-};
-
-// Solver-level result returned after the final SIMPLE iteration.
-struct SolveSummary {
-  bool converged = false;
-  int iterations = 0;
-  std::vector<IterationMetrics> residual_history;
-};
 
 // Steady lid-driven cavity solver using a collocated SIMPLE loop.
 class SimpleSolver {

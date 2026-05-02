@@ -46,6 +46,10 @@ int main() {
     expect_near(fields.u(solver.grid().nx() + 1, j), -fields.u(solver.grid().nx(), j));
     expect_near(fields.v(0, j), -fields.v(1, j));
     expect_near(fields.v(solver.grid().nx() + 1, j), -fields.v(solver.grid().nx(), j));
+    expect_near(fields.pressure_correction(0, j), fields.pressure_correction(1, j));
+    expect_near(
+        fields.pressure_correction(solver.grid().nx() + 1, j),
+        fields.pressure_correction(solver.grid().nx(), j));
     expect_near(fields.u_face(0, j), 0.0);
     expect_near(fields.u_face(solver.grid().nx(), j), 0.0);
 
@@ -60,6 +64,10 @@ int main() {
     expect_near(fields.u(i, solver.grid().ny() + 1), 2.0 * config.lid_velocity - fields.u(i, solver.grid().ny()));
     expect_near(fields.v(i, 0), -fields.v(i, 1));
     expect_near(fields.v(i, solver.grid().ny() + 1), -fields.v(i, solver.grid().ny()));
+    expect_near(fields.pressure_correction(i, 0), fields.pressure_correction(i, 1));
+    expect_near(
+        fields.pressure_correction(i, solver.grid().ny() + 1),
+        fields.pressure_correction(i, solver.grid().ny()));
     expect_near(fields.v_face(i, 0), 0.0);
     expect_near(fields.v_face(i, solver.grid().ny()), 0.0);
   }

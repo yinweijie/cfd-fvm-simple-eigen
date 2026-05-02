@@ -1,13 +1,13 @@
 {
   "passed": true,
   "u": {
-    "linf": 0.11454591430000005,
-    "l2": 0.030822132288492846,
+    "linf": 0.11454591449999996,
+    "l2": 0.030822132578780585,
     "samples": 17
   },
   "v": {
-    "linf": 0.03258647204,
-    "l2": 0.01329989420924289,
+    "linf": 0.03258647188,
+    "l2": 0.013299894402898952,
     "samples": 17
   },
   "thresholds": {
@@ -16,5 +16,14 @@
   },
   "artifacts": {
     "plot": "results/cavity_re100/validation_plot.svg"
+  },
+  "plot_style": {
+    "title": "CFD Cavity Validation: Simulation vs Benchmark",
+    "reference_label": "Benchmark",
+    "results_label": "Simulation",
+    "reference_render": "points",
+    "results_render": "solid",
+    "reference_color": "#dc2626",
+    "results_color": "#0f766e"
   }
 }

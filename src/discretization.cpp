@@ -469,6 +469,156 @@ MomentumAssembly assemble_v_momentum(
   return assembly;
 }
 
+// Assemble the pseudo-transient u predictor for the projection method.
+// It reuses the steady convection-diffusion stencil, adds rho*V/dt to the diagonal,
+// and moves the previous velocity into the RHS as the pseudo-time source.
+MomentumAssembly assemble_u_projection_momentum(
+    const StructuredGrid& grid,
+    const CavityCase& config,
+    const FlowFields& fields) {
+  const int nx = grid.nx();
+  const int ny = grid.ny();
+  const double mu = config.viscosity();
+  const double dx = grid.dx();
+  const double dy = grid.dy();
+  const double diff_x = mu * dy / dx;
+  const double diff_y = mu * dx / dy;
+  const double transient = config.density * dx * dy / config.controls.projection_dt;
+
+  MomentumAssembly assembly;
+  assembly.system.matrix.resize(static_cast<int>(grid.u_unknown_count()),
+                                static_cast<int>(grid.u_unknown_count()));
+  assembly.system.rhs = Eigen::VectorXd::Zero(static_cast<int>(grid.u_unknown_count()));
+  assembly.diagonal = Eigen::VectorXd::Zero(static_cast<int>(grid.u_unknown_count()));
+
+  std::vector<Eigen::Triplet<double>> triplets;
+  triplets.reserve(grid.u_unknown_count() * 5);
+
+  for (int j = 1; j <= ny; ++j) {
+    for (int i = 1; i <= nx; ++i) {
+      const int row = static_cast<int>(grid.u_index(i, j));
+      const FaceMassFluxes fluxes = compute_face_mass_fluxes(grid, config, fields, i, j);
+      const MomentumCoefficients coeffs =
+          compute_momentum_coefficients(fluxes, diff_x, diff_y);
+      double a_p = coeffs.a_p_base + transient;
+
+      assembly.system.rhs(row) =
+          pressure_force_u(fields, i, j, dy) + transient * fields.u(i, j);
+
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          i < nx,
+          [&]() { return static_cast<int>(grid.u_index(i + 1, j)); },
+          coeffs.a_e,
+          &a_p);
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          i > 1,
+          [&]() { return static_cast<int>(grid.u_index(i - 1, j)); },
+          coeffs.a_w,
+          &a_p);
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          j < ny,
+          [&]() { return static_cast<int>(grid.u_index(i, j + 1)); },
+          coeffs.a_n,
+          &a_p,
+          &assembly.system.rhs(row),
+          2.0 * coeffs.a_n * config.lid_velocity);
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          j > 1,
+          [&]() { return static_cast<int>(grid.u_index(i, j - 1)); },
+          coeffs.a_s,
+          &a_p);
+
+      assembly.diagonal(row) = a_p;
+      triplets.emplace_back(row, row, a_p);
+    }
+  }
+
+  assembly.system.matrix.setFromTriplets(triplets.begin(), triplets.end());
+  return assembly;
+}
+
+// Assemble the pseudo-transient v predictor for the projection method.
+// The wall fold-back mirrors the SIMPLE v equation while the transient term carries
+// the old corrected velocity toward the next pseudo-time state.
+MomentumAssembly assemble_v_projection_momentum(
+    const StructuredGrid& grid,
+    const CavityCase& config,
+    const FlowFields& fields) {
+  const int nx = grid.nx();
+  const int ny = grid.ny();
+  const double mu = config.viscosity();
+  const double dx = grid.dx();
+  const double dy = grid.dy();
+  const double diff_x = mu * dy / dx;
+  const double diff_y = mu * dx / dy;
+  const double transient = config.density * dx * dy / config.controls.projection_dt;
+
+  MomentumAssembly assembly;
+  assembly.system.matrix.resize(static_cast<int>(grid.v_unknown_count()),
+                                static_cast<int>(grid.v_unknown_count()));
+  assembly.system.rhs = Eigen::VectorXd::Zero(static_cast<int>(grid.v_unknown_count()));
+  assembly.diagonal = Eigen::VectorXd::Zero(static_cast<int>(grid.v_unknown_count()));
+
+  std::vector<Eigen::Triplet<double>> triplets;
+  triplets.reserve(grid.v_unknown_count() * 5);
+
+  for (int j = 1; j <= ny; ++j) {
+    for (int i = 1; i <= nx; ++i) {
+      const int row = static_cast<int>(grid.v_index(i, j));
+      const FaceMassFluxes fluxes = compute_face_mass_fluxes(grid, config, fields, i, j);
+      const MomentumCoefficients coeffs =
+          compute_momentum_coefficients(fluxes, diff_x, diff_y);
+      double a_p = coeffs.a_p_base + transient;
+
+      assembly.system.rhs(row) =
+          pressure_force_v(fields, i, j, dx) + transient * fields.v(i, j);
+
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          i < nx,
+          [&]() { return static_cast<int>(grid.v_index(i + 1, j)); },
+          coeffs.a_e,
+          &a_p);
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          i > 1,
+          [&]() { return static_cast<int>(grid.v_index(i - 1, j)); },
+          coeffs.a_w,
+          &a_p);
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          j < ny,
+          [&]() { return static_cast<int>(grid.v_index(i, j + 1)); },
+          coeffs.a_n,
+          &a_p);
+      couple_neighbor_or_fold_boundary(
+          &triplets,
+          row,
+          j > 1,
+          [&]() { return static_cast<int>(grid.v_index(i, j - 1)); },
+          coeffs.a_s,
+          &a_p);
+
+      assembly.diagonal(row) = a_p;
+      triplets.emplace_back(row, row, a_p);
+    }
+  }
+
+  assembly.system.matrix.setFromTriplets(triplets.begin(), triplets.end());
+  return assembly;
+}
+
 // Assemble the pressure-correction system from predicted face-flux imbalance.
 // The function first rebuilds face velocities from the predicted fields, then loops over
 // all interior pressure cells, computes the local continuity defect, and writes the

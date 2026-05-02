@@ -48,6 +48,18 @@ MomentumAssembly assemble_v_momentum(
     const CavityCase& config,
     const FlowFields& fields);
 
+// Assemble the pseudo-transient u-momentum predictor used by the projection solver.
+MomentumAssembly assemble_u_projection_momentum(
+    const StructuredGrid& grid,
+    const CavityCase& config,
+    const FlowFields& fields);
+
+// Assemble the pseudo-transient v-momentum predictor used by the projection solver.
+MomentumAssembly assemble_v_projection_momentum(
+    const StructuredGrid& grid,
+    const CavityCase& config,
+    const FlowFields& fields);
+
 // Assemble the SIMPLE pressure-correction equation from predicted face mass imbalance.
 PressureCorrectionAssembly assemble_pressure_correction(
     const StructuredGrid& grid,

@@ -12,9 +12,11 @@ struct SolverControls {
   int min_iterations = 50;
   double continuity_tolerance = 1e-6;
   double momentum_tolerance = 1e-6;
+  double velocity_tolerance = 1e-8;
   double alpha_u = 0.5;
   double alpha_v = 0.5;
   double alpha_p = 0.3;
+  double projection_dt = 0.1;
 };
 
 // Full configuration for the steady lid-driven cavity benchmark case.

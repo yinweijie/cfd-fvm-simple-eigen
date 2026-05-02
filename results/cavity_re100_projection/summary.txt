@@ -1,0 +1,6 @@
+solver=projection
+converged=true
+iterations=244
+re=100
+nx=32
+ny=32

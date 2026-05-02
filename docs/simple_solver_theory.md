@@ -1,4 +1,4 @@
-# SIMPLE Solver Theory Notes
+# Cavity Solver Theory Notes
 
 This note documents the current lid-driven cavity solver implementation in code-first notation.
 The goal is to let a reader move directly between the equations and the code without renaming symbols in their head.
@@ -24,12 +24,12 @@ The solver uses these code identifiers as the canonical notation:
 - `pressure_correction`: pressure increment field, often written as `p'` in textbooks
 - `u`, `v`: corrected cell-centered velocity components
 - `u_star`, `v_star`: momentum-predicted velocity components, often written as `u*`, `v*`
-- `d_u`, `d_v`: SIMPLE velocity-correction factors derived from the relaxed momentum diagonal
+- `d_u`, `d_v`: pressure-to-velocity correction factors; SIMPLE derives them from the relaxed momentum diagonal, while projection sets them to `projection_dt / density`
 - `u_face`, `v_face`: Rhie-Chow reconstructed face velocities on physical faces
 
 ## Documentation Ownership Boundary
 
-This Markdown note is the canonical home for implementation-stage meaning: SIMPLE chronology, function-to-stage mapping, correction formulas, pressure-reference handling, and the distinction between the gradients used in Rhie-Chow reconstruction and the gradients used in the final correction step.
+This Markdown note is the canonical home for implementation-stage meaning: SIMPLE chronology, projection chronology, function-to-stage mapping, correction formulas, pressure-reference handling, and the distinction between the gradients used in Rhie-Chow reconstruction and the gradients used in the final correction step.
 
 The reusable discrete algebra lives in [`docs/momentum_boundary_tables.typ`](docs/momentum_boundary_tables.typ), which is the canonical home for coefficient formulas, boundary linearization tables, face-averaged `d_face` definitions, and the pressure-correction coefficient and `mass_imbalance` equations.
 
@@ -38,6 +38,7 @@ Use the split below to avoid drift:
 | Topic | Canonical Doc | Why |
 | --- | --- | --- |
 | SIMPLE call order and stage semantics | `docs/simple_solver_theory.md` | tied directly to `SimpleSolver::run()` and helper sequencing |
+| Projection call order and pseudo-time semantics | `docs/simple_solver_theory.md` | tied directly to `ProjectionSolver::run()` and `projection_dt` |
 | `pressure_gradient_x()` / `pressure_gradient_y()` in Rhie-Chow reconstruction | `docs/simple_solver_theory.md` | needs code-stage interpretation, not just algebra |
 | `grad_pc_x` / `grad_pc_y` in final field correction | `docs/simple_solver_theory.md` | belongs to the correction stage, not the reusable stencil tables |
 | Momentum and pressure-correction coefficient formulas | `docs/momentum_boundary_tables.typ` | reusable equation/table material |
@@ -100,7 +101,8 @@ The final assembled form is exactly the ghost-cell-substituted form of the same 
 
 ## Momentum Equations
 
-`assemble_u_momentum()` and `assemble_v_momentum()` build the cell-centered momentum systems using an upwind convection plus central diffusion stencil.
+`assemble_u_momentum()` and `assemble_v_momentum()` build the SIMPLE cell-centered momentum systems using an upwind convection plus central diffusion stencil.
+`assemble_u_projection_momentum()` and `assemble_v_projection_momentum()` reuse the same steady convection-diffusion stencil, but add a pseudo-transient term so projection iterations can march toward a steady state.
 
 For one control volume, the stencil coefficients are:
 
@@ -132,6 +134,18 @@ After each momentum solve, `update_u_correction_factors()` or `update_v_correcti
 
 These are not extra transport coefficients.
 They are the local pressure-to-velocity response scales reused in both Rhie-Chow reconstruction and the later pressure-correction update of `u` and `v`.
+
+For the projection solver, the predictor equations omit SIMPLE under-relaxation and instead add:
+
+- diagonal contribution: `density * dx * dy / projection_dt`
+- source contribution: `(density * dx * dy / projection_dt) * velocity_old`
+
+The projection correction factors are then set directly from the pseudo-time step:
+
+- `d_u(i, j) = projection_dt / density`
+- `d_v(i, j) = projection_dt / density`
+
+This makes `pressure_correction` a pressure increment for the projection step rather than a SIMPLE relaxation correction.
 
 ## Discretization Coefficient Expressions (Typst)
 
@@ -169,7 +183,8 @@ This keeps the pressure and velocity coupling stable on the collocated grid whil
 
 ## Pressure Correction Equation
 
-After the predicted velocities are available, `assemble_pressure_correction()` builds the SIMPLE pressure-correction system.
+After the predicted velocities are available, `assemble_pressure_correction()` builds the pressure-increment system.
+SIMPLE uses it as a pressure-correction equation; projection uses the same matrix structure as a pressure-increment Poisson equation.
 It does not reuse the earlier `(u_star, v)` face refresh from `run()`.
 Instead, it creates local `u_face_star` and `v_face_star` arrays and rebuilds predictor faces inside the assembly call with:
 
@@ -189,6 +204,9 @@ The matrix coefficients are assembled from `d_u` and `d_v`:
 - `a_n = rho * dx * avg(d_v) / dy`
 - `a_s = rho * dx * avg(d_v) / dy`
 - `a_p = a_e + a_w + a_n + a_s`
+
+In SIMPLE, `d_u` and `d_v` come from the relaxed momentum diagonals.
+In projection, both are set to `projection_dt / density`, so the coefficients reduce to the usual pseudo-time pressure-increment scaling.
 
 Because only pressure gradients matter, one cell is pinned as a reference:
 
@@ -245,14 +263,34 @@ Two face-velocity refreshes therefore matter for different reasons:
 - `refresh_face_velocities(u_star, v)` is the staging bridge between the `u` and `v` predictor solves.
 - the predictor-face reconstruction inside `assemble_pressure_correction()` is the one that actually feeds the pressure-correction right-hand side, and it uses `(u_star, v_star)` rather than `(u_star, v)`.
 
+## Projection Iteration Flow
+
+`ProjectionSolver::run()` follows a pseudo-transient incremental projection sequence each iteration:
+
+1. `prepare_iteration()` sets `d_u` and `d_v` to `projection_dt / density`, applies cavity ghost-cell boundary conditions, and rebuilds `u_face`, `v_face` from corrected `u`, `v`.
+2. `solve_u_predictor()` calls `assemble_u_projection_momentum()`, solves the pseudo-transient `u` predictor, and scatters the result into `u_star`.
+3. `run()` reapplies boundary conditions and refreshes faces from `(u_star, v)` before the `v` predictor, mirroring the staged flux update used by SIMPLE.
+4. `solve_v_predictor()` calls `assemble_v_projection_momentum()` and scatters the result into `v_star`.
+5. `solve_pressure_increment_step()` calls `assemble_pressure_correction()`, now with projection correction factors, to solve the pressure-increment Poisson system.
+6. `project_fields_and_collect_metrics()` calls `project_pressure_and_velocity()`, reapplies boundary conditions, rebuilds corrected faces from `(u, v)`, and records the same residual fields used by SIMPLE.
+
+The projection pressure/velocity update uses:
+
+- `u(i, j) = u_star(i, j) - d_u(i, j) * grad_pc_x`
+- `v(i, j) = v_star(i, j) - d_v(i, j) * grad_pc_y`
+- `pressure(i, j) = pressure(i, j) + pressure_correction(i, j)`
+
+Unlike SIMPLE, projection does not multiply the pressure increment by `alpha_p`.
+The pressure level is still shifted afterward so `pressure(1, 1)` is zero.
+
 ## Convergence Metrics
 
-The solver records one `IterationMetrics` entry per iteration:
+Both solvers record one `IterationMetrics` entry per iteration:
 
 - `continuity_residual`: average absolute cell mass defect computed after rebuilding corrected face velocities from `u`, `v`, `pressure`, `d_u`, and `d_v`
 - `u_momentum_residual`: linear-solver relative residual for the `u` system
 - `v_momentum_residual`: linear-solver relative residual for the `v` system
-- `pressure_correction_residual`: linear-solver relative residual for the pressure-correction system
+- `pressure_correction_residual`: linear-solver relative residual for the pressure-correction or pressure-increment system
 - `max_velocity_correction`: max absolute change between the pre-correction and post-correction `u`, `v`
 
 The run is considered converged only after `min_iterations` and only if momentum, continuity, and velocity-correction thresholds all pass.
@@ -265,7 +303,7 @@ The run is considered converged only after `min_iterations` and only if momentum
 - `centerline_u.csv`: the `u` profile interpolated to `x = 0.5`
 - `centerline_v.csv`: the `v` profile interpolated to `y = 0.5`
 - `residuals.csv`: iteration history
-- `summary.txt`: final convergence summary
+- `summary.txt`: final convergence summary, including `solver=simple` or `solver=projection`
 
 The centerline files are interpolated because the cell centers on an even grid do not lie exactly on the geometric midlines.
 
@@ -273,17 +311,18 @@ The centerline files are interpolated because the cell centers on an even grid d
 
 | Code Identifier | Theory Meaning | Producer | Consumer | File / Function |
 | --- | --- | --- | --- | --- |
-| `pressure` | Corrected cell-centered pressure | `correct_pressure_and_velocity()` | momentum assembly, face reconstruction, output | `src/simple_solver.cpp`, `src/discretization.cpp`, `src/output.cpp` |
-| `pressure_correction` | SIMPLE pressure increment (`p'`) | `load_pressure_correction()` | pressure/velocity correction, wall ghost update | `src/simple_solver.cpp`, `src/discretization.cpp` |
-| `u` | Corrected cell-centered x-velocity | `correct_pressure_and_velocity()` | next SIMPLE iteration, output | `src/simple_solver.cpp`, `src/output.cpp` |
-| `v` | Corrected cell-centered y-velocity | `correct_pressure_and_velocity()` | next SIMPLE iteration, output | `src/simple_solver.cpp`, `src/output.cpp` |
-| `u_star` | Predicted x-velocity (`u*`) | `load_u_solution()` | `v` predictor, final correction | `src/simple_solver.cpp` |
-| `v_star` | Predicted y-velocity (`v*`) | `load_v_solution()` | pressure correction, final correction | `src/simple_solver.cpp` |
-| `d_u` | x-velocity correction factor from relaxed momentum diagonal | `update_u_correction_factors()` | Rhie-Chow reconstruction, final correction, pressure correction | `src/simple_solver.cpp`, `src/discretization.cpp` |
-| `d_v` | y-velocity correction factor from relaxed momentum diagonal | `update_v_correction_factors()` | Rhie-Chow reconstruction, final correction, pressure correction | `src/simple_solver.cpp`, `src/discretization.cpp` |
+| `pressure` | Corrected cell-centered pressure | SIMPLE or projection correction stage | momentum assembly, face reconstruction, output | `src/simple_solver.cpp`, `src/projection_solver.cpp`, `src/discretization.cpp`, `src/output.cpp` |
+| `pressure_correction` | SIMPLE correction or projection pressure increment (`p'`) | `load_pressure_correction()` | pressure/velocity correction, wall ghost update | `src/simple_solver.cpp`, `src/projection_solver.cpp`, `src/discretization.cpp` |
+| `u` | Corrected cell-centered x-velocity | SIMPLE or projection correction stage | next solver iteration, output | `src/simple_solver.cpp`, `src/projection_solver.cpp`, `src/output.cpp` |
+| `v` | Corrected cell-centered y-velocity | SIMPLE or projection correction stage | next solver iteration, output | `src/simple_solver.cpp`, `src/projection_solver.cpp`, `src/output.cpp` |
+| `u_star` | Predicted x-velocity (`u*`) | `load_u_solution()` | `v` predictor, pressure increment, final correction | `src/simple_solver.cpp`, `src/projection_solver.cpp` |
+| `v_star` | Predicted y-velocity (`v*`) | `load_v_solution()` | pressure increment, final correction | `src/simple_solver.cpp`, `src/projection_solver.cpp` |
+| `d_u` | x-velocity correction factor | SIMPLE relaxed diagonal or projection `projection_dt / density` | Rhie-Chow reconstruction, final correction, pressure increment | `src/simple_solver.cpp`, `src/projection_solver.cpp`, `src/discretization.cpp` |
+| `d_v` | y-velocity correction factor | SIMPLE relaxed diagonal or projection `projection_dt / density` | Rhie-Chow reconstruction, final correction, pressure increment | `src/simple_solver.cpp`, `src/projection_solver.cpp`, `src/discretization.cpp` |
 | `u_face` | Rhie-Chow x-face velocity | `update_face_velocities()` | momentum fluxes, continuity residual, predictor-face reconstruction seed | `src/discretization.cpp` |
 | `v_face` | Rhie-Chow y-face velocity | `update_face_velocities()` | momentum fluxes, continuity residual, predictor-face reconstruction seed | `src/discretization.cpp` |
 | `a_e`, `a_w`, `a_n`, `a_s` | Neighbor stencil coefficients | `compute_momentum_coefficients()`, `compute_pressure_correction_coefficients()` | matrix assembly | `src/discretization.cpp` |
 | `a_p_base` | Unrelaxed momentum diagonal | `compute_momentum_coefficients()` | under-relaxation source and relaxed diagonal | `src/discretization.cpp` |
 | `a_p` | Relaxed diagonal / central coefficient | momentum and pressure-correction assembly | linear solves, SIMPLE correction factors | `src/discretization.cpp`, `src/simple_solver.cpp` |
-| `mass_imbalance` | Cell continuity defect used as the pressure-correction RHS | `assemble_pressure_correction()` | diagnostics and pressure-correction solve | `src/discretization.cpp` |
+| `projection_dt` | Projection pseudo-time step | CLI / `SolverControls` | transient predictor and pressure-increment coefficients | `include/cfd/case.hpp`, `src/projection_solver.cpp`, `src/discretization.cpp` |
+| `mass_imbalance` | Cell continuity defect used as the pressure-increment RHS | `assemble_pressure_correction()` | diagnostics and pressure-correction/projection solve | `src/discretization.cpp` |

@@ -154,6 +154,7 @@ void write_results(
   }
 
   std::ofstream summary_out(out_dir / "summary.txt");
+  summary_out << "solver=" << flow_solver_kind_name(summary.solver) << "\n";
   summary_out << "converged=" << (summary.converged ? "true" : "false") << "\n";
   summary_out << "iterations=" << summary.iterations << "\n";
   summary_out << "re=" << config.reynolds << "\n";

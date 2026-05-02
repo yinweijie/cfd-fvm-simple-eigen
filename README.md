@@ -1,10 +1,10 @@
-# CFD FVM SIMPLE Solver With Eigen
+# CFD FVM Cavity Solver With Eigen
 
-A small C++ CFD project that implements a 2D steady incompressible lid-driven cavity solver with the SIMPLE algorithm and Eigen-based sparse linear solvers.
+A small C++ CFD project that implements a 2D steady incompressible lid-driven cavity solver with a projection-method default path, a SIMPLE compatibility path, and Eigen-based sparse linear solvers.
 
 ## What Is In This Repo
 
-- Finite-volume SIMPLE solver for a collocated grid
+- Finite-volume projection and SIMPLE solvers for a collocated grid
 - Rhie-Chow style face-velocity coupling to stabilize pressure-velocity coupling
 - Command-line executable for the cavity benchmark case
 - Unit and smoke tests
@@ -32,9 +32,11 @@ Eigen is expected either in `third_party/eigen` or via `-DEIGEN3_INCLUDE_DIR=/pa
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ctest --test-dir build --output-on-failure
-./build/cfd_solver --case cavity --nx 32 --ny 32 --re 100 --max-iters 2000 --min-iters 100 --alpha-u 0.5 --alpha-v 0.5 --alpha-p 0.3 --output-dir results/cavity_re100
-python3 scripts/validate_cavity.py --results results/cavity_re100
+./build/cfd_solver --case cavity --solver projection --nx 32 --ny 32 --re 100 --max-iters 1000 --min-iters 100 --projection-dt 0.1 --output-dir results/cavity_re100_projection
+python3 scripts/validate_cavity.py --results results/cavity_re100_projection
 ```
+
+The default solver is `projection`. Use `--solver simple` to run the original SIMPLE path, or pass `--solver projection --projection-dt 0.1` explicitly when recording projection runs.
 
 ## Validation
 
@@ -45,16 +47,20 @@ The validator compares the simulation centerlines with benchmark data and writes
 
 Latest checked result in this workspace:
 
-- `u` centerline: `Linf = 0.1145`, `L2 = 0.0308`
-- `v` centerline: `Linf = 0.0326`, `L2 = 0.0133`
+- Projection solver, `results/cavity_re100_projection`:
+  - `u` centerline: `Linf = 0.1144`, `L2 = 0.0306`
+  - `v` centerline: `Linf = 0.0329`, `L2 = 0.0132`
+- SIMPLE solver, `results/cavity_re100`:
+  - `u` centerline: `Linf = 0.1145`, `L2 = 0.0308`
+  - `v` centerline: `Linf = 0.0326`, `L2 = 0.0133`
 
-Validation image:
+Projection validation image:
 
-![Validation Plot](results/cavity_re100/validation_plot.svg)
+![Validation Plot](results/cavity_re100_projection/validation_plot.svg)
 
 ## Theory Notes
 
-- [docs/simple_solver_theory.md](docs/simple_solver_theory.md) explains the current SIMPLE, Rhie-Chow, and pressure-correction implementation using the same symbols that appear in code.
+- [docs/simple_solver_theory.md](docs/simple_solver_theory.md) explains the current projection, SIMPLE, Rhie-Chow, and pressure-correction implementation using the same symbols that appear in code.
 
 ## Repository Layout
 

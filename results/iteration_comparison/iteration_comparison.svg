@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="520" viewBox="0 0 780 520">
+<rect width="100%" height="100%" fill="#f8fafc" />
+<text x="390.0" y="34" text-anchor="middle" font-size="24" font-weight="700" fill="#0f172a">SIMPLE vs Projection Iteration Counts</text>
+<text x="390.0" y="58" text-anchor="middle" font-size="13" fill="#475569">Lid-driven cavity, Re=100, same convergence gates</text>
+<line x1="82" y1="393.0" x2="722" y2="393.0" stroke="#d8dee9" stroke-width="1" />
+<text x="70" y="397.0" text-anchor="end" font-size="12" fill="#475569">0</text>
+<line x1="82" y1="330.0" x2="722" y2="330.0" stroke="#d8dee9" stroke-width="1" />
+<text x="70" y="334.0" text-anchor="end" font-size="12" fill="#475569">240</text>
+<line x1="82" y1="267.0" x2="722" y2="267.0" stroke="#d8dee9" stroke-width="1" />
+<text x="70" y="271.0" text-anchor="end" font-size="12" fill="#475569">480</text>
+<line x1="82" y1="204.0" x2="722" y2="204.0" stroke="#d8dee9" stroke-width="1" />
+<text x="70" y="208.0" text-anchor="end" font-size="12" fill="#475569">720</text>
+<line x1="82" y1="141.0" x2="722" y2="141.0" stroke="#d8dee9" stroke-width="1" />
+<text x="70" y="145.0" text-anchor="end" font-size="12" fill="#475569">960</text>
+<line x1="82" y1="78.0" x2="722" y2="78.0" stroke="#d8dee9" stroke-width="1" />
+<text x="70" y="82.0" text-anchor="end" font-size="12" fill="#475569">1200</text>
+<line x1="82" y1="393" x2="722" y2="393" stroke="#334155" stroke-width="1.5" />
+<line x1="82" y1="78" x2="82" y2="393" stroke="#334155" stroke-width="1.5" />
+<rect x="144.6" y="369.1" width="42.0" height="23.9" rx="4" fill="#2563eb" />
+<text x="165.6" y="362.1" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">91</text>
+<rect x="190.8" y="338.7" width="42.0" height="54.3" rx="4" fill="#0f766e" />
+<text x="211.8" y="331.7" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">207</text>
+<text x="188.7" y="419" text-anchor="middle" font-size="13" fill="#334155">8x8</text>
+<text x="188.7" y="438" text-anchor="middle" font-size="12" fill="#64748b">S/P = 0.44x</text>
+<rect x="357.9" y="316.6" width="42.0" height="76.4" rx="4" fill="#2563eb" />
+<text x="378.9" y="309.6" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">291</text>
+<rect x="404.1" y="334.5" width="42.0" height="58.5" rx="4" fill="#0f766e" />
+<text x="425.1" y="327.5" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">223</text>
+<text x="402.0" y="419" text-anchor="middle" font-size="13" fill="#334155">16x16</text>
+<text x="402.0" y="438" text-anchor="middle" font-size="12" fill="#64748b">S/P = 1.30x</text>
+<rect x="571.2" y="129.2" width="42.0" height="263.8" rx="4" fill="#2563eb" />
+<text x="592.2" y="122.2" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">1005</text>
+<rect x="617.4" y="328.9" width="42.0" height="64.0" rx="4" fill="#0f766e" />
+<text x="638.4" y="321.9" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">244</text>
+<text x="615.3" y="419" text-anchor="middle" font-size="13" fill="#334155">32x32</text>
+<text x="615.3" y="438" text-anchor="middle" font-size="12" fill="#64748b">S/P = 4.12x</text>
+<rect x="502" y="70" width="18" height="18" rx="3" fill="#2563eb" />
+<text x="530" y="84" font-size="13" fill="#0f172a">simple</text>
+<rect x="502" y="94" width="18" height="18" rx="3" fill="#0f766e" />
+<text x="530" y="108" font-size="13" fill="#0f172a">projection</text>
+<text x="402.0" y="488" text-anchor="middle" font-size="13" fill="#334155">Grid size</text>
+<text x="24" y="235.5" text-anchor="middle" font-size="13" fill="#334155" transform="rotate(-90 24 235.5)">Iterations to convergence</text>
+</svg>

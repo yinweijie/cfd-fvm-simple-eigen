@@ -1,0 +1,6 @@
+solver=simple
+converged=true
+iterations=91
+re=100
+nx=8
+ny=8

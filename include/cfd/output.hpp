@@ -4,7 +4,9 @@
 #include <utility>
 #include <vector>
 
-#include "cfd/simple_solver.hpp"
+#include "cfd/case.hpp"
+#include "cfd/field.hpp"
+#include "cfd/solver.hpp"
 
 namespace cfd {
 

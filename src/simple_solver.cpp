@@ -113,6 +113,7 @@ LinearSolveResult SimpleSolver::solve_pressure_correction_step() {
   const LinearSolveResult result =
       solve_linear_system(assembly.system, SolverKind::kConjugateGradient, 1e-10, 10000);
   load_pressure_correction(result.solution);
+  apply_boundary_conditions();
   return result;
 }
 
@@ -220,7 +221,8 @@ bool SimpleSolver::has_converged(int iteration, const IterationMetrics& metrics)
       metrics.v_momentum_residual < config_.controls.momentum_tolerance;
   const bool continuity_ok =
       metrics.continuity_residual < config_.controls.continuity_tolerance;
-  const bool velocity_ok = metrics.max_velocity_correction < 1e-8;
+  const bool velocity_ok =
+      metrics.max_velocity_correction < config_.controls.velocity_tolerance;
   return iteration >= config_.controls.min_iterations && momentum_ok && continuity_ok && velocity_ok;
 }
 
@@ -230,6 +232,7 @@ bool SimpleSolver::has_converged(int iteration, const IterationMetrics& metrics)
 // finally checks the convergence gates.
 SolveSummary SimpleSolver::run() {
   SolveSummary summary;
+  summary.solver = FlowSolverKind::kSimple;
 
   for (int iteration = 1; iteration <= config_.controls.max_iterations; ++iteration) {
     // SIMPLE predictor step: start from the corrected cell-centered fields.

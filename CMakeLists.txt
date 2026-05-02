@@ -21,6 +21,7 @@ add_library(cfd_core STATIC
   src/mesh.cpp
   src/discretization.cpp
   src/simple_solver.cpp
+  src/projection_solver.cpp
   src/output.cpp
 )
 add_library(cfd::core ALIAS cfd_core)
@@ -57,6 +58,18 @@ add_executable(test_simple_smoke
 target_link_libraries(test_simple_smoke PRIVATE cfd::core)
 add_test(NAME test_simple_smoke COMMAND test_simple_smoke)
 
+add_executable(test_projection_coefficients
+  tests/test_projection_coefficients.cpp
+)
+target_link_libraries(test_projection_coefficients PRIVATE cfd::core)
+add_test(NAME test_projection_coefficients COMMAND test_projection_coefficients)
+
+add_executable(test_projection_smoke
+  tests/test_projection_smoke.cpp
+)
+target_link_libraries(test_projection_smoke PRIVATE cfd::core)
+add_test(NAME test_projection_smoke COMMAND test_projection_smoke)
+
 add_executable(test_cli_smoke
   tests/test_cli_smoke.cpp
 )
@@ -67,3 +80,30 @@ add_test(
     $<TARGET_FILE:cfd_solver>
     ${CMAKE_CURRENT_BINARY_DIR}/test_cli_smoke_output
 )
+
+find_program(PYTHON3_EXECUTABLE python3)
+if(PYTHON3_EXECUTABLE)
+  add_test(
+    NAME test_projection_validation_run
+    COMMAND $<TARGET_FILE:cfd_solver>
+      --case cavity
+      --solver projection
+      --nx 32
+      --ny 32
+      --re 100
+      --max-iters 1000
+      --min-iters 100
+      --projection-dt 0.1
+      --output-dir ${CMAKE_CURRENT_BINARY_DIR}/test_projection_validation_output
+  )
+  add_test(
+    NAME test_projection_validation
+    COMMAND ${PYTHON3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/scripts/validate_cavity.py
+      --results ${CMAKE_CURRENT_BINARY_DIR}/test_projection_validation_output
+  )
+  set_tests_properties(test_projection_validation PROPERTIES
+    DEPENDS test_projection_validation_run
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+endif()

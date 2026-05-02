@@ -1,0 +1,7 @@
+solver,nx,ny,re,iterations,converged,continuity_residual,u_momentum_residual,v_momentum_residual,max_velocity_correction,output_dir
+simple,8,8,100.0,91,true,9.053608485e-11,7.73898195e-09,4.275577279e-09,9.997767059e-09,results/iteration_comparison/runs/simple_nx8
+projection,8,8,100.0,207,true,1.970410394e-18,3.539359605e-09,7.529557215e-09,9.829165773e-09,results/iteration_comparison/runs/projection_nx8
+simple,16,16,100.0,291,true,4.276811955e-12,2.990449768e-09,5.427582993e-10,9.659984784e-09,results/iteration_comparison/runs/simple_nx16
+projection,16,16,100.0,223,true,1.15975685e-18,8.345195724e-09,8.676711035e-09,9.794371619e-09,results/iteration_comparison/runs/projection_nx16
+simple,32,32,100.0,1005,true,2.94021028e-13,3.393393482e-09,2.153484725e-09,9.970131165e-09,results/iteration_comparison/runs/simple_nx32
+projection,32,32,100.0,244,true,9.09499766e-19,3.695144083e-09,9.72882106e-09,9.48677753e-09,results/iteration_comparison/runs/projection_nx32
