@@ -11,7 +11,7 @@ coefficients, wall fold-back tables, Rhie-Chow face formulas, and the
 pressure-correction stencil assembled in
 `assemble_pressure_correction()`.
 The complementary Markdown note
-[`docs/simple_solver_theory.md`](simple_solver_theory.md) is the
+`docs/simple_solver_theory.md` is the
 canonical home for SIMPLE chronology, call-flow semantics, and the final
 `grad_pc_x` / `grad_pc_y` correction step in
 `correct_pressure_and_velocity()`.
