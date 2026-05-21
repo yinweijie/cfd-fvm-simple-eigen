@@ -3,6 +3,80 @@
 This note documents the current lid-driven cavity solver implementation in code-first notation.
 The goal is to let a reader move directly between the equations and the code without renaming symbols in their head.
 
+## Governing Equations
+
+The solver targets the steady, incompressible, laminar Navier-Stokes equations on a 2D domain in primitive variables $(u, v, p)$, with constant density $\rho$ and dynamic viscosity $\mu$. The code identifiers `pressure`, `u`, `v` correspond to $p$, $u$, $v$.
+
+Continuity:
+
+$$
+\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0
+$$
+
+x-momentum:
+
+$$
+\rho\left(u\,\frac{\partial u}{\partial x} + v\,\frac{\partial u}{\partial y}\right)
+= -\frac{\partial p}{\partial x} + \mu\left(\frac{\partial^{2} u}{\partial x^{2}} + \frac{\partial^{2} u}{\partial y^{2}}\right)
+$$
+
+y-momentum:
+
+$$
+\rho\left(u\,\frac{\partial v}{\partial x} + v\,\frac{\partial v}{\partial y}\right)
+= -\frac{\partial p}{\partial y} + \mu\left(\frac{\partial^{2} v}{\partial x^{2}} + \frac{\partial^{2} v}{\partial y^{2}}\right)
+$$
+
+Dynamic viscosity is not stored directly. `CavityCase::viscosity()` in [`include/cfd/case.hpp`](../include/cfd/case.hpp) derives it from the cavity Reynolds number:
+
+$$
+\mu = \frac{\rho \, U_\text{lid} \, L_x}{\mathrm{Re}}
+$$
+
+where $U_\text{lid}$ is `lid_velocity` and $L_x$ is `mesh_spec.lx`.
+
+The finite-volume discretization integrates each PDE over a cell-centered control volume of size $\Delta x \, \Delta y$ and applies the divergence theorem, turning every term into a sum of face fluxes. For an interior cell with east, west, north, south faces:
+
+x-momentum:
+
+$$
+\sum_{f \in \{e, w, n, s\}} \left(\rho\, U_f\, A_f\, u_f - \mu\, A_f\, \left.\frac{\partial u}{\partial n}\right|_f\right)
+= -\left.\frac{\partial p}{\partial x}\right|_P \Delta x \, \Delta y
+$$
+
+y-momentum:
+
+$$
+\sum_{f \in \{e, w, n, s\}} \left(\rho\, U_f\, A_f\, v_f - \mu\, A_f\, \left.\frac{\partial v}{\partial n}\right|_f\right)
+= -\left.\frac{\partial p}{\partial y}\right|_P \Delta x \, \Delta y
+$$
+
+Continuity:
+
+$$
+\rho\, \Delta y \,(u_{f,e} - u_{f,w}) + \rho\, \Delta x \,(v_{f,n} - v_{f,s}) = 0
+$$
+
+Here $U_f$ is the face-normal mass-flux velocity (`u_face` on x-faces, `v_face` on y-faces), $A_f$ is the face area ($\Delta y$ on x-faces, $\Delta x$ on y-faces), and $\partial / \partial n$ is the face-outward-normal derivative. The convection term is upwinded and the diffusion term is central-differenced when collected into the neighbor coefficients $a_e, a_w, a_n, a_s$ and the diagonal $a_p^\text{base}$ discussed in the Momentum Equations section. The full coefficient algebra, including boundary fold-back and source linearization, is in [`docs/momentum_boundary_tables.typ`](momentum_boundary_tables.typ).
+
+## Solver Overview
+
+The code provides two pressure-velocity coupling strategies that share the same momentum stencil, the same pressure-correction matrix structure, and the same ghost-cell boundary rules.
+They are implemented as `SimpleSolver` and `ProjectionSolver` and selected at runtime through the CLI.
+
+- **SIMPLE** (`SimpleSolver::run()`): the steady SIMPLE algorithm. The momentum predictor is under-relaxed by `alpha_u`, `alpha_v`. A pressure-correction equation derived from continuity is solved for `pressure_correction`. The corrected pressure update is `pressure += alpha_p * pressure_correction` and the velocity update reuses the relaxed momentum diagonal through `d_u`, `d_v`.
+- **Projection** (`ProjectionSolver::run()`): a pseudo-transient incremental projection method. The momentum predictor adds a `rho * dx * dy / projection_dt` mass-matrix term so each outer iteration acts like a backward-Euler step with step size `projection_dt`. The same pressure-correction matrix is reused as a pressure-increment Poisson system, with `d_u = d_v = projection_dt / density`. The pressure update is `pressure += pressure_correction`, with no `alpha_p`.
+
+Both solvers run the same five-stage outer loop per iteration:
+
+1. **Boundary and face refresh.** Apply cavity ghost-cell rules through `apply_cavity_boundary_conditions()`, then rebuild `u_face`, `v_face` from the latest corrected cell-centered fields with Rhie-Chow reconstruction.
+2. **Momentum predictor.** Assemble and solve the `u` system against the current `pressure`, scatter the result into `u_star`, refresh x-faces from `(u_star, v)` so the `v` predictor sees them, then assemble and solve the `v` system into `v_star`. The relaxed momentum diagonal (SIMPLE) or the pseudo-time scaling (projection) updates `d_u`, `d_v`.
+3. **Pressure-correction / pressure-increment solve.** `assemble_pressure_correction()` rebuilds predictor faces internally from `(u_star, v_star)`, forms the cell mass defect `mass_imbalance` as the right-hand side, and solves for `pressure_correction`. One reference cell at `(1, 1)` is pinned to remove the null space.
+4. **Field correction.** `correct_pressure_and_velocity()` (SIMPLE) or `project_pressure_and_velocity()` (projection) updates `u`, `v`, and `pressure` from `pressure_correction`. The solver then subtracts `pressure(1, 1)` from every interior cell to fix the absolute pressure level.
+5. **Convergence diagnostics.** Reapply boundary conditions, rebuild corrected face velocities from `(u, v)`, then record `continuity_residual`, momentum residuals, pressure-correction residual, and `max_velocity_correction` as one `IterationMetrics` entry.
+
+The two solvers differ only in three well-localized places: how `d_u` and `d_v` are produced, whether the momentum predictor includes a pseudo-transient term, and whether the pressure update is multiplied by `alpha_p`. Assembly stencils, ghost-cell rules, Rhie-Chow face reconstruction, reference-cell pinning, and residual tracking are shared.
+
 ## Problem Setup
 
 - Domain: 2D square cavity with `lx = ly = 1`
