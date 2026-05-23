@@ -10,6 +10,164 @@ finite-volume lid-driven cavity code. It is split into two parts:
 2. an implementation-oriented description that maps each step to the current
    code path.
 
+== Why A Time Step Appears In Projection Methods
+
+Projection methods are often introduced first as transient solvers for
+incompressible Navier-Stokes equations. In that setting the unknown flow field is
+not only a spatial field, but a sequence of states in time:
+
+$
+(bold(u)^n, p^n) -> (bold(u)^(n+1), p^(n+1))
+$
+
+A time step is therefore needed to state how far the solution advances between
+two neighboring physical states. The momentum equation contains the physical
+acceleration term $rho partial_t bold(u)$. A first-order time discretization
+turns it into the inertial term:
+
+$
+(rho (bold(u)^(n+1) - bold(u)^n)) / (Delta t)
+$
+
+This term is what lets a transient solver remember the previous velocity and
+advance the solution by one physical time increment $Delta t$. The projection
+idea then splits this time advance into two easier subproblems:
+
+1. predict an intermediate velocity from the momentum equation;
+2. correct that velocity with a pressure increment so the new velocity satisfies
+   incompressibility.
+
+For a true transient simulation, $Delta t$ is a physical time step. Reducing it
+changes the temporal resolution and the physical trajectory being computed.
+
+The current code uses the same algebraic projection structure for a steady
+lid-driven cavity solve. Here `projection_dt` should be read as a pseudo-time
+step: it controls the numerical march toward a steady state, but the saved
+result is not a physical snapshot at a particular time. The solver stops when
+the pseudo-time updates, momentum residuals, and continuity residual are small
+enough.
+
+== Deriving The Equations To Solve
+
+Start from the constant-density incompressible Navier-Stokes equations:
+
+$
+nabla dot bold(u) = 0
+$
+
+$
+rho partial_t bold(u) + C(bold(u), bold(u)) - D(bold(u)) = -nabla p
+$
+
+Here $C$ represents convection and $D$ represents viscous diffusion. A direct
+implicit step from time level $n$ to $n+1$ would ask for both
+$bold(u)^(n+1)$ and $p^(n+1)$ at the same time:
+
+$
+(rho (bold(u)^(n+1) - bold(u)^n)) / (Delta t)
++ C(bold(u)^n, bold(u)^(n+1))
+- D(bold(u)^(n+1))
+= -nabla p^(n+1)
+$
+
+$
+nabla dot bold(u)^(n+1) = 0
+$
+
+This is the coupled pressure-velocity problem. The pressure is not determined
+by an independent equation of state; instead, it is whatever scalar field makes
+the new velocity divergence-free.
+
+Projection methods introduce a pressure increment:
+
+$
+phi = p^(n+1) - p^n
+$
+
+and split the coupled step. First, replace the unknown new pressure by the known
+old pressure and solve for an intermediate velocity:
+
+$
+(rho (bold(u)^* - bold(u)^n)) / (Delta t)
++ C(bold(u)^n, bold(u)^*)
+- D(bold(u)^*)
+= -nabla p^n
+$
+
+This is the momentum-prediction equation. It gives a velocity that has felt
+convection, diffusion, boundary forcing, and the old pressure gradient, but it
+does not yet have the pressure increment needed to enforce continuity.
+
+Next, subtract the predictor equation from the coupled target equation. The
+projection approximation places the convection and diffusion changes in the
+predictor step, leaving the correction step to carry the pressure increment:
+
+$
+(rho (bold(u)^(n+1) - bold(u)^*)) / (Delta t) = -nabla phi
+$
+
+Solving this expression for the corrected velocity gives:
+
+$
+bold(u)^(n+1) = bold(u)^* - (Delta t) / (rho) nabla phi
+$
+
+Now impose the incompressibility constraint on the corrected velocity:
+
+$
+0 = nabla dot bold(u)^(n+1)
+= nabla dot bold(u)^* - (Delta t) / (rho) nabla^2 phi
+$
+
+Therefore the pressure increment must satisfy:
+
+$
+nabla^2 phi = (rho) / (Delta t) nabla dot bold(u)^*
+$
+
+This is the pressure-increment Poisson equation. In the code, `phi` is stored as
+`pressure_correction`. Once it is solved, the pressure update is:
+
+$
+p^(n+1) = p^n + phi
+$
+
+On a finite-volume grid, the divergence equation is written as a face-flux
+balance. For one pressure control volume $P$, the predicted mass imbalance is:
+
+$
+m_P^* =
+rho Delta y (u_w^* - u_e^*)
++ rho Delta x (v_s^* - v_n^*)
+$
+
+The pressure-increment equation is then assembled in stencil form:
+
+$
+a_P phi_P
+- a_E phi_E
+- a_W phi_W
+- a_N phi_N
+- a_S phi_S
+= m_P^*
+$
+
+For the projection solver, the velocity response factors are:
+
+$
+d_u = d_v = (Delta t) / (rho)
+$
+
+so the neighbor coefficients have the usual face-response form, for example:
+
+$
+a_E = (rho Delta y d_e) / (Delta x)
+$
+
+This is the discrete equation actually solved by the pressure-increment step.
+The first pressure-increment cell is pinned because adding a constant to
+$phi$ does not change its gradient.
+
 == Part 1: Projection Method As An Algorithm
 
 The projection method solves incompressible Navier-Stokes flow by separating a

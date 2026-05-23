@@ -5,26 +5,41 @@ The goal is to let a reader move directly between the equations and the code wit
 
 ## Governing Equations
 
-The solver targets the steady, incompressible, laminar Navier-Stokes equations on a 2D domain in primitive variables $(u, v, p)$, with constant density $\rho$ and dynamic viscosity $\mu$. The code identifiers `pressure`, `u`, `v` correspond to $p$, $u$, $v$.
+The solver targets the steady, incompressible, laminar Navier-Stokes equations on a 2D domain in primitive variables $(u, v, p)$, with constant density $\rho$ and dynamic viscosity $\mu$. The code identifiers `pressure`, `u`, `v` correspond to $p$, $u$, $v$. The equations are written in conservation (divergence) form, which is the form the finite-volume assembly directly mirrors.
 
 Continuity:
 
 $$
-\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0
+\nabla \cdot \mathbf{u} \;=\; \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \;=\; 0
 $$
 
 x-momentum:
 
 $$
-\rho\left(u\,\frac{\partial u}{\partial x} + v\,\frac{\partial u}{\partial y}\right)
-= -\frac{\partial p}{\partial x} + \mu\left(\frac{\partial^{2} u}{\partial x^{2}} + \frac{\partial^{2} u}{\partial y^{2}}\right)
+\frac{\partial(\rho\, u\, u)}{\partial x}
++ \frac{\partial(\rho\, v\, u)}{\partial y}
+\;=\; -\frac{\partial p}{\partial x}
++ \frac{\partial}{\partial x}\!\left(\mu\,\frac{\partial u}{\partial x}\right)
++ \frac{\partial}{\partial y}\!\left(\mu\,\frac{\partial u}{\partial y}\right)
 $$
 
 y-momentum:
 
 $$
-\rho\left(u\,\frac{\partial v}{\partial x} + v\,\frac{\partial v}{\partial y}\right)
-= -\frac{\partial p}{\partial y} + \mu\left(\frac{\partial^{2} v}{\partial x^{2}} + \frac{\partial^{2} v}{\partial y^{2}}\right)
+\frac{\partial(\rho\, u\, v)}{\partial x}
++ \frac{\partial(\rho\, v\, v)}{\partial y}
+\;=\; -\frac{\partial p}{\partial y}
++ \frac{\partial}{\partial x}\!\left(\mu\,\frac{\partial v}{\partial x}\right)
++ \frac{\partial}{\partial y}\!\left(\mu\,\frac{\partial v}{\partial y}\right)
+$$
+
+Equivalently, with the velocity vector $\mathbf{u} = (u, v)$ and scalar component $\phi \in \{u, v\}$:
+
+$$
+\nabla \cdot (\rho\, \mathbf{u}\, u) =
+-\frac{\partial p}{\partial x} + \nabla \cdot (\mu \nabla u), \qquad
+\nabla \cdot (\rho\, \mathbf{u}\, v) =
+-\frac{\partial p}{\partial y} + \nabla \cdot (\mu \nabla v)
 $$
 
 Dynamic viscosity is not stored directly. `CavityCase::viscosity()` in [`include/cfd/case.hpp`](../include/cfd/case.hpp) derives it from the cavity Reynolds number:
@@ -35,29 +50,29 @@ $$
 
 where $U_\text{lid}$ is `lid_velocity` and $L_x$ is `mesh_spec.lx`.
 
-The finite-volume discretization integrates each PDE over a cell-centered control volume of size $\Delta x \, \Delta y$ and applies the divergence theorem, turning every term into a sum of face fluxes. For an interior cell with east, west, north, south faces:
+The finite-volume discretization integrates each conservation-form PDE over a cell-centered control volume $\Omega_P$ of size $\Delta x \, \Delta y$ and applies the divergence theorem, turning every divergence into a sum of face-normal fluxes. For an interior cell with east, west, north, south faces:
 
 x-momentum:
 
 $$
-\sum_{f \in \{e, w, n, s\}} \left(\rho\, U_f\, A_f\, u_f - \mu\, A_f\, \left.\frac{\partial u}{\partial n}\right|_f\right)
-= -\left.\frac{\partial p}{\partial x}\right|_P \Delta x \, \Delta y
+\sum_{f \in \{e, w, n, s\}} \left(\rho\, U_f\, u_f - \mu\, \left.\frac{\partial u}{\partial n}\right|_f \right) A_f
+\;=\; -\left.\frac{\partial p}{\partial x}\right|_P \Delta x \, \Delta y
 $$
 
 y-momentum:
 
 $$
-\sum_{f \in \{e, w, n, s\}} \left(\rho\, U_f\, A_f\, v_f - \mu\, A_f\, \left.\frac{\partial v}{\partial n}\right|_f\right)
-= -\left.\frac{\partial p}{\partial y}\right|_P \Delta x \, \Delta y
+\sum_{f \in \{e, w, n, s\}} \left(\rho\, U_f\, v_f - \mu\, \left.\frac{\partial v}{\partial n}\right|_f \right) A_f
+\;=\; -\left.\frac{\partial p}{\partial y}\right|_P \Delta x \, \Delta y
 $$
 
 Continuity:
 
 $$
-\rho\, \Delta y \,(u_{f,e} - u_{f,w}) + \rho\, \Delta x \,(v_{f,n} - v_{f,s}) = 0
+\rho\, \Delta y \,(u_{f,e} - u_{f,w}) + \rho\, \Delta x \,(v_{f,n} - v_{f,s}) \;=\; 0
 $$
 
-Here $U_f$ is the face-normal mass-flux velocity (`u_face` on x-faces, `v_face` on y-faces), $A_f$ is the face area ($\Delta y$ on x-faces, $\Delta x$ on y-faces), and $\partial / \partial n$ is the face-outward-normal derivative. The convection term is upwinded and the diffusion term is central-differenced when collected into the neighbor coefficients $a_e, a_w, a_n, a_s$ and the diagonal $a_p^\text{base}$ discussed in the Momentum Equations section. The full coefficient algebra, including boundary fold-back and source linearization, is in [`docs/momentum_boundary_tables.typ`](momentum_boundary_tables.typ).
+Here $U_f$ is the coordinate-direction face velocity (`u_face` on x-faces, `v_face` on y-faces), with the east-minus-west and north-minus-south differences providing the outward-flux signs. $A_f$ is the face area ($\Delta y$ on x-faces, $\Delta x$ on y-faces), and $\partial / \partial n$ is the face-outward-normal derivative. The convection term is upwinded in $u_f$ / $v_f$ and the diffusion term is central-differenced; the result is collected into the neighbor coefficients $a_e, a_w, a_n, a_s$ and the diagonal $a_p^\text{base}$ discussed in the Momentum Equations section. The full coefficient algebra, including boundary fold-back and source linearization, is in [`docs/momentum_boundary_tables.typ`](momentum_boundary_tables.typ).
 
 ## Solver Overview
 
